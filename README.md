@@ -29,11 +29,10 @@ AI가 학습 전반을 자동화하고 학생이 능동적으로 참여하도록
 **팀명**: ƧTΛCK³ (Stack Cubed)  
 **구성**: 3인의 풀스택 웹 개발자
 
-| 이름 | 학과 | 역할 | GitHub |
-|------|------|------|--------|
-| 김은채 (팀장) | 콘텐츠IT | 풀 스택 개발 / UI∘UX 디자인 / 기획∘스토리텔링 / 마케팅∘브랜딩 / PPT 제작 | [Chae0227](https://github.com/Chae0227) |
-| 김찬영 | 빅데이터 | 풀 스택 개발 / UI∘UX 디자인 / 기획∘스토리텔링 / 마케팅∘브랜딩 / 콘텐츠∘영상 제작 | [chanyoung1256](https://github.com/chanyoung1256) |
-| 최지은 | 빅데이터 | 풀 스택 개발 / UI∘UX 디자인 / 기획∘스토리텔링 / 문서∘보고서 작성 | [wldms-04](https://github.com/wldms-04) |
+| [<img src="https://avatars.githubusercontent.com/Chae0227" width="100px;" alt="Chae0227"/>](https://github.com/Chae0227) | [<img src="https://avatars.githubusercontent.com/chanyoung1256" width="100px;" alt="chanyoung1256"/>](https://github.com/chanyoung1256) | [<img src="https://avatars.githubusercontent.com/wldms-04" width="100px;" alt="wldms-04"/>](https://github.com/wldms-04) |
+| :------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------: |
+| <a href="https://github.com/Chae0227"><strong>김은채 (팀장)</strong></a><br>콘텐츠IT | <a href="https://github.com/chanyoung1256"><strong>김찬영</strong></a><br>빅데이터 | <a href="https://github.com/wldms-04"><strong>최지은</strong></a><br>빅데이터 |
+
 
 ---
 
