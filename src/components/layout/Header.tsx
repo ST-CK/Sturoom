@@ -12,8 +12,8 @@ export default function Header() {
         {/* 왼쪽: 로고 + 텍스트 + 버전 + 사용 가이드 */}
         <div className="flex items-center gap-3">
           <Link href="/" className="flex items-center gap-2">
-            {/* 로고 네모: 차콜 + 블루 그라데이션 */}
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-gray-700 via-slate-600 to-blue-500" />
+            {/* 로고 네모: 연보라 + 민트 그라데이션 */}
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-purple-300 via-purple-400 to-teal-300" />
             <span className="text-lg font-semibold text-slate-800">Sturoom</span>
 
             {/* Beta 버전: Beta만 강조 */}
