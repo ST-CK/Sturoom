@@ -21,7 +21,7 @@ export default function Header() {
               <span className="rounded bg-blue-600 px-1.5 py-0.5 text-white text-xs font-semibold">
                 Beta
               </span>
-              <span className="text-gray-400">v1.0.0</span>
+              <span className="text-gray-400">v1.1.1</span>
             </span>
           </Link>
 
