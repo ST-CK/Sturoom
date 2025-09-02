@@ -12,13 +12,13 @@ export default function Header() {
         {/* 왼쪽: 로고 + 텍스트 + 버전 + 사용 가이드 */}
         <div className="flex items-center gap-3">
           <Link href="/" className="flex items-center gap-2">
-            {/* 로고 네모: 하늘색 + 연노랑 그라데이션 */}
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-sky-300 via-sky-200 to-yellow-200" />
-            <span className="text-lg font-semibold">Sturoom</span>
+            {/* 로고 네모: 차콜 + 블루 그라데이션 */}
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-gray-700 via-slate-600 to-blue-500" />
+            <span className="text-lg font-semibold text-slate-800">Sturoom</span>
 
             {/* Beta 버전: Beta만 강조 */}
             <span className="flex items-center gap-1 text-sm">
-              <span className="rounded bg-sky-500 px-1.5 py-0.5 text-white text-xs font-semibold">
+              <span className="rounded bg-blue-600 px-1.5 py-0.5 text-white text-xs font-semibold">
                 Beta
               </span>
               <span className="text-gray-400">v1.0.0</span>
@@ -38,7 +38,7 @@ export default function Header() {
         <div className="hidden md:flex items-center gap-2">
           <a
             href="/#cta"
-            className="rounded-xl px-3 py-1.5 text-sm font-semibold text-slate-800 bg-gradient-to-r from-sky-300 to-yellow-200 shadow-sm hover:opacity-90"
+            className="rounded-xl px-3 py-1.5 text-sm font-semibold text-white bg-gradient-to-r from-gray-700 via-slate-600 to-blue-500 shadow-sm hover:opacity-90"
           >
             무료 체험
           </a>
