@@ -30,7 +30,7 @@ export default function Header() {
             href="/#guide"
             className="hidden md:inline-flex items-center gap-1 rounded-xl border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
           >
-            💡 사용 가이드
+            💡 사용 팁
           </Link>
         </div>
 
