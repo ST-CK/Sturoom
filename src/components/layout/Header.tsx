@@ -9,24 +9,44 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 border-b bg-white/80 backdrop-blur">
       <Container className="flex items-center justify-between py-3">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-indigo-500 to-sky-400" />
-          <span className="text-lg font-semibold">Sturoom</span>
-        </Link>
+        {/* 왼쪽: 로고 + 텍스트 + 버전 + 사용 가이드 */}
+        <div className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-2">
+            {/* 로고 네모: 하늘색 + 연노랑 그라데이션 */}
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-sky-300 via-sky-200 to-yellow-200" />
+            <span className="text-lg font-semibold">Sturoom</span>
 
-        {/* 데스크톱 */}
-        <nav className="hidden gap-6 text-sm md:flex">
-          <a className="hover:text-indigo-600" href="/#features">기능</a>
-          <a className="hover:text-indigo-600" href="/#courses">코스</a>
-          <a className="hover:text-indigo-600" href="/#cta">시작</a>
-        </nav>
+            {/* Beta 버전: Beta만 강조 */}
+            <span className="flex items-center gap-1 text-sm">
+              <span className="rounded bg-sky-500 px-1.5 py-0.5 text-white text-xs font-semibold">
+                Beta
+              </span>
+              <span className="text-gray-400">v1.0.0</span>
+            </span>
+          </Link>
 
-        <div className="hidden md:block">
+          {/* 사용 가이드 */}
+          <Link
+            href="/#guide"
+            className="hidden md:inline-flex items-center gap-1 rounded-xl border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
+          >
+            💡 사용 가이드
+          </Link>
+        </div>
+
+        {/* 오른쪽: 메뉴 */}
+        <div className="hidden md:flex items-center gap-2">
           <a
             href="/#cta"
-            className="rounded-xl border border-indigo-200 px-3 py-1.5 text-sm font-medium text-indigo-700 hover:bg-indigo-50"
+            className="rounded-xl px-3 py-1.5 text-sm font-semibold text-slate-800 bg-gradient-to-r from-sky-300 to-yellow-200 shadow-sm hover:opacity-90"
           >
             무료 체험
+          </a>
+          <a
+            href="/login"
+            className="rounded-xl border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            로그인
           </a>
         </div>
 
@@ -39,24 +59,6 @@ export default function Header() {
           ☰
         </button>
       </Container>
-
-      {/* 모바일 드롭다운 */}
-      {open && (
-        <div className="border-t bg-white md:hidden">
-          <Container className="flex flex-col gap-2 py-3">
-            <a href="/#features" onClick={() => setOpen(false)}>기능</a>
-            <a href="/#courses" onClick={() => setOpen(false)}>코스</a>
-            <a href="/#cta" onClick={() => setOpen(false)}>시작</a>
-            <a
-              href="/#cta"
-              className="mt-2 rounded-xl border border-indigo-200 px-3 py-2 text-sm font-medium text-indigo-700"
-              onClick={() => setOpen(false)}
-            >
-              무료 체험
-            </a>
-          </Container>
-        </div>
-      )}
     </header>
   );
 }
