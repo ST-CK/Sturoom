@@ -18,7 +18,7 @@ export default function Header() {
         <nav className="hidden gap-6 text-sm md:flex">
           <a className="hover:text-indigo-600" href="/#features">기능</a>
           <a className="hover:text-indigo-600" href="/#courses">코스</a>
-          <a className="hover:text-indigo-600" href="/#cta">시작하기</a>
+          <a className="hover:text-indigo-600" href="/#cta">시작</a>
         </nav>
 
         <div className="hidden md:block">
@@ -46,7 +46,7 @@ export default function Header() {
           <Container className="flex flex-col gap-2 py-3">
             <a href="/#features" onClick={() => setOpen(false)}>기능</a>
             <a href="/#courses" onClick={() => setOpen(false)}>코스</a>
-            <a href="/#cta" onClick={() => setOpen(false)}>시작하기</a>
+            <a href="/#cta" onClick={() => setOpen(false)}>시작</a>
             <a
               href="/#cta"
               className="mt-2 rounded-xl border border-indigo-200 px-3 py-2 text-sm font-medium text-indigo-700"
