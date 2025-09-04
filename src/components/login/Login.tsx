@@ -109,21 +109,19 @@ export default function Login() {
               카카오로 로그인
             </button>
           </div>
+        <div className="mx-auto mt-8 text-center text-gray-600">
+          아직 회원이 아니신가요?
+          <div className="mt-3">
+            <Link
+              href="/signup"
+              className="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-6 py-3 font-semibold text-white shadow-sm hover:bg-indigo-700"
+            >
+              회원가입
+            </Link>
+          </div>
+        </div>
         </div>
       </form>
-
-      {/* 카드 아래 영역 여백도 위와 균형 맞추기 위해 mt-8 */}
-      <div className="mx-auto mt-8 text-center text-gray-600">
-        아직 회원이 아니신가요?
-        <div className="mt-3">
-          <Link
-            href="/signup"
-            className="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-6 py-3 font-semibold text-white shadow-sm hover:bg-indigo-700"
-          >
-            회원가입
-          </Link>
-        </div>
-      </div>
     </div>
   );
 }
