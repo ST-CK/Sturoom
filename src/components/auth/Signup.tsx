@@ -91,7 +91,7 @@ export default function Signup() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-md">
+    <div className="mx-auto w-full max-w-xl">
       <form onSubmit={handleSubmit} className="rounded-2xl border bg-white p-8 shadow-sm">
         <h1 className="text-center text-3xl font-bold tracking-tight">회원가입</h1>
 

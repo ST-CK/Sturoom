@@ -1,20 +1,15 @@
-// import Container from "@/components/layout/Container";
-// import ClientLogin from "./_ClientLogin";
-
-// export default function LoginPage() {
-//   // 화면 상‧하 여백을 동일하게: 모바일(py-14) / 데스크톱(py-20)
-//   return (
-//     <section className="py-14 md:py-20">
-//       <Container>
-//         <ClientLogin />
-//       </Container>
-//     </section>
-//   );
-// }
-
+import Container from "@/components/layout/Container";
 import Login from "@/components/login/Login";
 
 export default function LoginPage() {
-  return <Login />;
+  return (
+    <main className="bg-gray-50">
+      <Container>
+        {/* 헤더/푸터 사이 동일 간격 확보 + 중앙 정렬 */}
+        <div className="min-h-[70vh] py-16 flex items-center justify-center">
+          <Login />
+        </div>
+      </Container>
+    </main>
+  );
 }
-
