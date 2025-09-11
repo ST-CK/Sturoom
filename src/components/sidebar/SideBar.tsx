@@ -40,6 +40,7 @@ export default function SideBar({
 
   return (
     <>
+      {/* 오버레이 */}
       <div
         aria-hidden
         className={`fixed inset-0 z-[60] bg-black/30 backdrop-blur-sm transition-opacity ${
@@ -48,8 +49,9 @@ export default function SideBar({
         onClick={onClose}
       />
 
+      {/* 패널 */}
       <aside role="dialog" aria-modal="true" aria-label="사이드바" className={`${panelBase} ${sideClass}`}>
-        {/* 헤더와 동일한 높이 */}
+        {/* 헤더와 동일 높이(h-16) */}
         <div className="flex h-16 items-center justify-between border-b px-4">
           <div className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-purple-300 via-purple-400 to-teal-300" />
@@ -73,7 +75,9 @@ export default function SideBar({
               {(initials ?? "ST").slice(0, 2)}
             </div>
             <div className="min-w-0">
-              <div className="max-w-[60vw] truncate text-sm font-semibold text-slate-800">{displayName ?? "사용자"}</div>
+              <div className="max-w-[60vw] truncate text-sm font-semibold text-slate-800">
+                {displayName ?? "사용자"}
+              </div>
               <div className="text-xs text-slate-500">환영합니다 👋</div>
             </div>
           </div>

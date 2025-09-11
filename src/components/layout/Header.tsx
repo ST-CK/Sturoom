@@ -18,6 +18,7 @@ export default function Header() {
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   const displayName = useMemo(() => profile?.full_name || "사용자", [profile]);
+
   const initials = useMemo(() => {
     const parts = (profile?.full_name ?? "").trim().split(/\s+/).filter(Boolean);
     if (parts.length === 0) return "ST";
@@ -31,6 +32,7 @@ export default function Header() {
     router.refresh();
   };
 
+  // 드롭다운 바깥 클릭 닫기
   useEffect(() => {
     function onClick(e: MouseEvent) {
       if (!menuRef.current) return;
@@ -40,17 +42,18 @@ export default function Header() {
     return () => document.removeEventListener("mousedown", onClick);
   }, [openMenu]);
 
+  // 라우트 변경 시 사이드바 자동 닫기
   useEffect(() => {
     setOpenSidebar(false);
   }, [pathname]);
 
   return (
     <header className="sticky top-0 z-50 border-b bg-white/80 backdrop-blur">
-      {/* h-16로 고정, padding으로 높이 늘어나지 않게 py-0 */}
+      {/* h-16 고정. 버튼을 컨테이너 '안' 첫 요소로 배치해서 로고와 안 겹침 */}
       <Container className="flex h-16 items-center justify-between py-0">
-        {/* 왼쪽 묶음: 버튼 + 로고/베타/버전 + 사용팁 */}
+        {/* 왼쪽: ☰ 버튼 + 로고/버전 + 사용 팁 */}
         <div className="flex items-center gap-3">
-          {/* ☰ 버튼: 레이아웃 안에 배치 + 살짝 왼쪽으로 당겨서 화면 가장자리 느낌 */}
+          {/* ☰ 버튼: 살짝 왼쪽으로 당겨 가장자리 느낌 */}
           <button
             onClick={() => setOpenSidebar(true)}
             aria-label="사이드바 열기"
@@ -62,10 +65,13 @@ export default function Header() {
           </button>
 
           <Link href="/" className="flex items-center gap-2">
+            {/* 로고 네모: 연보라 + 민트 그라데이션 */}
             <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-purple-300 via-purple-400 to-teal-300" />
             <span className="text-lg font-semibold text-slate-800">Sturoom</span>
             <span className="flex items-center gap-1 text-sm">
-              <span className="rounded bg-blue-600 px-1.5 py-0.5 text-white text-xs font-semibold">Beta</span>
+              <span className="rounded bg-blue-600 px-1.5 py-0.5 text-white text-xs font-semibold">
+                Beta
+              </span>
               <span className="text-gray-400">v1.1.2</span>
             </span>
           </Link>
@@ -80,6 +86,7 @@ export default function Header() {
 
         {/* 오른쪽: 상태별 메뉴 */}
         <nav className="hidden md:flex items-center gap-2">
+          {/* 비로그인 */}
           {!loading && !user && (
             <>
               <Link
@@ -97,8 +104,10 @@ export default function Header() {
             </>
           )}
 
+          {/* 로딩 스켈레톤 */}
           {loading && <div className="ml-1 h-9 w-28 animate-pulse rounded-lg bg-slate-200" />}
 
+          {/* 로그인 */}
           {!loading && user && (
             <div className="relative ml-1" ref={menuRef}>
               <button
