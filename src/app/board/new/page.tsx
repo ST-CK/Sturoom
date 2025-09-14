@@ -4,25 +4,39 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import BoardForm from "@/components/board/BoardForm";
 import { boardRepo } from "@/services/board";
+import useAuth from "@/hooks/useAuth";
 
 export default function NewPostPage() {
   const router = useRouter();
+  const { user, profile } = useAuth();
   const [saving, setSaving] = useState(false);
-  const me = "demo@sturoom.dev";
+
+  const meEmail = user?.email ?? "";
+  const meName  = profile?.full_name ?? "사용자";
 
   return (
     <section className="mx-auto w-full max-w-4xl px-4 pb-5 pt-10">
-      <h1 className="mb-6 text-2xl font-bold tracking-tight">새 글 작성</h1>
+      <h1 className="mb-6 text-2xl font-bold">새 글 작성</h1>
 
       <BoardForm
-        author={me}
+        authorEmail={meEmail}
+        authorName={meName}
         saving={saving}
-        onSave={async ({ title, content, files, isPinned }) => {
-          setSaving(true);
-          const id = await boardRepo.create({ title, content, author: me, attachments: files });
-          if (isPinned) await boardRepo.update(id, { isPinned: true });
-          setSaving(false);
-          router.replace(`/board/${id}`);
+        onSave={async ({ title, content, files, isPinned, isAnonymous }) => {
+          try {
+            setSaving(true);
+            const id = await boardRepo.create({
+              title, content,
+              authorEmail: meEmail,
+              authorName: meName,
+              isAnonymous,
+              attachments: files,
+            });
+            if (isPinned) await boardRepo.update(id, { isPinned });
+            router.replace(`/board/${id}`);
+          } finally {
+            setSaving(false);
+          }
         }}
       />
     </section>

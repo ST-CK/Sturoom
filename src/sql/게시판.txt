@@ -1,0 +1,55 @@
+-- 게시글
+create table public.board_posts (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  content text not null,
+  author_email text not null,
+  author_name text not null,
+  is_anonymous boolean not null default false,
+  is_pinned boolean not null default false,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz
+);
+
+-- updated_at 자동 갱신
+create or replace function public.trg_board_posts_updated_at()
+returns trigger language plpgsql as $$
+begin
+  new.updated_at = now();
+  return new;
+end $$;
+
+create trigger board_posts_set_updated_at
+before update on public.board_posts
+for each row execute function public.trg_board_posts_updated_at();
+
+-- 댓글
+create table public.board_comments (
+  id uuid primary key default gen_random_uuid(),
+  post_id uuid not null references public.board_posts(id) on delete cascade,
+  author text not null,
+  content text not null,
+  created_at timestamptz not null default now()
+);
+
+-- 좋아요
+create table public.board_likes (
+  id uuid primary key default gen_random_uuid(),
+  post_id uuid not null references public.board_posts(id) on delete cascade,
+  user_id text not null,
+  created_at timestamptz not null default now(),
+  unique (post_id, user_id)
+);
+
+-- 첨부파일
+create table public.board_attachments (
+  id uuid primary key default gen_random_uuid(),
+  post_id uuid not null references public.board_posts(id) on delete cascade,
+  file_name text not null,
+  storage_path text not null,
+  created_at timestamptz not null default now()
+);
+
+-- 뷰
+create or replace view public.board_posts_view as
+select p.* from public.board_posts p;

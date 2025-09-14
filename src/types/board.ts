@@ -3,8 +3,8 @@ export type Post = {
   title: string;
   content: string;
   author: string;
-  createdAt: string; // ISO
-  updatedAt: string; // ISO
+  createdAt: string;
+  updatedAt: string;
   isPinned: boolean;
   likeUserIds: string[];
 };
@@ -14,14 +14,14 @@ export type Comment = {
   postId: string;
   author: string;
   content: string;
-  createdAt: string; // ISO
+  createdAt: string;
 };
 
 export type Attachment = {
   id: string;
   postId: string;
   fileName: string;
-  url: string; // data URL (mock) or storage URL
+  url: string;
 };
 
 export type ListParams = {
