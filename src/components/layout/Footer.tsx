@@ -9,43 +9,47 @@ export default function Footer() {
           <div>
             <h4 className="font-bold mb-3">Sturoom</h4>
             <ul>
-              <li>Sturoom 소개</li>
-              <li>Sturoom 피드</li>
-              <li>수강평 모아보기</li>
-              <li>블로그</li>
+              <li><a href="Sturoom 소개" className="hover:underline">Sturoom 소개</a></li>
+              <li><a href="Sturoom 피드" className="hover:underline">Sturoom 피드</a></li>
+              <li><a href="수강평 모아보기" className="hover:underline">수강평 모아보기</a></li>
+              <li><a href="블로그" className="hover:underline">블로그</a></li>
             </ul>
           </div>
           <div>
             <h4 className="font-bold mb-3">신청하기</h4>
             <ul>
-              <li>지식공유참여</li>
-              <li>멘토링 소개</li>
-              <li>Sturoom 비즈니스</li>
-              <li>Sturoom 제휴</li>
-              <li>Sturoom 마케팅 파트너스</li>
+              <li><a href="지식공유참여" className="hover:underline">지식공유참여</a></li>
+              <li><a href="멘토링 소개" className="hover:underline">멘토링 소개</a></li>
+              <li><a href="Sturoom 비즈니스" className="hover:underline">Sturoom 비즈니스</a></li>
+              <li><a href="Sturoom 제휴" className="hover:underline">Sturoom 제휴</a></li>
+              <li><a href="Sturoom 마케팅 파트너스" className="hover:underline">Sturoom 마케팅 파트너스</a></li>
             </ul>
           </div>
           <div>
             <h4 className="font-bold mb-3">코드 등록</h4>
             <ul>
-              <li>수강코드 등록</li>
-              <li>포인트코드 등록</li>
+              <li><a href="수강코드 등록" className="hover:underline">수강코드 등록</a></li>
+              <li><a href="포인트코드 등록" className="hover:underline">포인트코드 등록</a></li>
             </ul>
           </div>
           <div>
             <h4 className="font-bold mb-3">고객센터</h4>
             <ul>
-              <li>공지사항</li>
-              <li>자주묻는 질문</li>
-              <li>저작권 신고센터</li>
-              <li>강의·기능요청</li>
+              <li><a href="공지사항" className="hover:underline">공지사항</a></li>
+              <li><a href="자주묻는 질문" className="hover:underline">자주묻는 질문</a></li>
+              <li><a href="저작권 신고센터" className="hover:underline">저작권 신고센터</a></li>
+              <li><a href="강의·기능요청" className="hover:underline">강의·기능요청</a></li>
             </ul>
           </div>
         </div>
         {/* 하단 회사 정보 & 소셜 아이콘 */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-t pt-4">
           <div>
-            <div className="font-bold text-[#0673ca] mb-1">Sturoom | 개인정보처리방침 | 이용약관 </div>
+            <div className="font-bold text-[#0673ca] mb-1">
+              <a href="Sturoom" className="hover:underline">Sturoom</a> |{" "}
+              <a href="개인정보처리방침" className="hover:underline">개인정보처리방침</a> |{" "}
+              <a href="이용약관" className="hover:underline">이용약관</a>
+            </div>
             <div>
               ƧTΛCK³ | 김은채, 김찬영, 최지은 | 2025년도 2학기 소프트웨어 캡스톤 디자인 <br />
               ©Sturoom. ALL RIGHTS RESERVED
