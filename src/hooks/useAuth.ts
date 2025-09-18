@@ -3,12 +3,17 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import type { User } from "@supabase/supabase-js";
+import type { Stage } from "@/lib/timetable"; 
+
+type Role = "student" | "parent" | "teacher";
 
 type Profile = {
+  id: string;
   full_name: string | null;
-  role: string | null;
+  role: Role | null;
   school_name: string | null;
   phone: string | null;
+  education_stage: Stage | null;
 };
 
 export default function useAuth() {
@@ -19,44 +24,49 @@ export default function useAuth() {
   useEffect(() => {
     let mounted = true;
 
-    const loadSession = async () => {
-      const { data } = await supabase.auth.getSession();
+    const load = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       if (!mounted) return;
 
-      setUser(data.session?.user ?? null);
+      setUser(session?.user ?? null);
 
-      if (data.session?.user) {
-        const { data: prof } = await supabase
+      if (session?.user) {
+        const { data } = await supabase
           .from("profiles")
-          .select("full_name, role, school_name, phone")
-          .eq("id", data.session.user.id)
-          .maybeSingle<Profile>();
+          .select("id, full_name, role, school_name, phone, education_stage")
+          .eq("id", session.user.id)
+          .maybeSingle();
 
-        setProfile(prof ?? null);
+        if (mounted) setProfile((data as Profile) ?? null);
       }
 
-      setLoading(false);
+      if (mounted) setLoading(false);
     };
 
-    loadSession();
+    load();
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        supabase
-          .from("profiles")
-          .select("full_name, role, school_name, phone")
-          .eq("id", session.user.id)
-          .maybeSingle<Profile>()
-          .then(({ data }) => setProfile(data ?? null));
-      } else {
-        setProfile(null);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        if (!mounted) return;
+        setUser(session?.user ?? null);
+
+        if (session?.user) {
+          const { data } = await supabase
+            .from("profiles")
+            .select("id, full_name, role, school_name, phone, education_stage")
+            .eq("id", session.user.id)
+            .maybeSingle();
+
+          setProfile((data as Profile) ?? null);
+        } else {
+          setProfile(null);
+        }
       }
-    });
+    );
 
     return () => {
       mounted = false;
-      sub.subscription.unsubscribe();
+      subscription.unsubscribe();
     };
   }, []);
 
