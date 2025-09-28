@@ -1,28 +1,41 @@
-import { rooms, listWeeks, listPosts } from "../_data";
-import ClientRoom from "../../../components/library/ClientRoom";
+import { supabase } from "@/lib/supabaseClient";
+import ClientRoom from "@/components/library/ClientRoom";
+import type { LibraryPost } from "@/types/library";
 
-export default function LibraryRoomPage({ params }: { params: { id: string } }) {
-  const room = rooms.find((r) => r.id === params.id) ?? rooms[0];
-  const weeks = listWeeks(room.id);
-  const posts = listPosts(room.id);
+export default async function LibraryRoomPage(props: { params: Promise<{ id: string }> }) {
+  const { id: roomId } = await props.params;
+
+  const { data: room, error: roomError } = await supabase
+    .from("library_rooms")
+    .select("*")
+    .eq("id", roomId)
+    .maybeSingle();
+
+  if (roomError || !room) {
+    return <div className="p-6 text-red-600">해당 강의실을 찾을 수 없습니다.</div>;
+  }
+
+  const { data: weeks } = await supabase
+    .from("library_posts")
+    .select("week")
+    .eq("room_id", roomId);
+
+  const uniqueWeeks = Array.from(new Set((weeks ?? []).map((w) => w.week))).sort();
+
+  const { data: posts } = await supabase
+    .from("library_posts")
+    .select("*")
+    .eq("room_id", roomId)
+    .order("created_at", { ascending: false });
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6">
-      {/* 헤더 */}
-      <div className="mb-5 flex items-center justify-between">
-        <div>
-          <div className="text-lg font-bold tracking-tight">{room.title}</div>
-          <div className="text-xs text-gray-500">
-            {room.id} · {room.instructor}
-          </div>
-        </div>
-        <div className="rounded-xl bg-white/70 px-3 py-1 text-xs text-gray-600 ring-1 ring-gray-200">
-          내 활동
-        </div>
-      </div>
-
-      {/* 본문 (클라이언트 컴포넌트) */}
-      <ClientRoom initialWeeks={weeks} initialPosts={posts} />
+    <div className="p-6">
+      <h1 className="mb-6 text-xl font-bold">{room.title}</h1>
+      <ClientRoom
+        roomId={roomId}
+        initialWeeks={uniqueWeeks}
+        initialPosts={(posts ?? []) as LibraryPost[]}
+      />
     </div>
   );
 }

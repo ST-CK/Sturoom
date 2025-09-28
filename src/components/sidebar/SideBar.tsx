@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect } from "react";
-import { X, Home, HelpCircle, CalendarCheck2, MessageSquareText, Brain, Activity } from "lucide-react";
+import { X, Home, HelpCircle, CalendarCheck2, MessageSquareText, Brain, Activity, BookOpen, } from "lucide-react";
 
 type SideBarProps = {
   open: boolean;
@@ -96,6 +96,14 @@ export default function SideBar({
           <Link href="/attendance" onClick={onClose} className="flex items-center gap-2 rounded-lg pl-2 pr-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
             <CalendarCheck2 className="h-4 w-4" />
             출석부
+          </Link>
+          <Link
+            href="/library"
+            onClick={onClose}
+            className="flex items-center gap-2 rounded-lg pl-2 pr-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            <BookOpen className="h-4 w-4" />
+            강의자료실
           </Link>
           <Link href="/board" onClick={onClose} className="flex items-center gap-2 rounded-lg pl-2 pr-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
             <MessageSquareText className="h-4 w-4" />
