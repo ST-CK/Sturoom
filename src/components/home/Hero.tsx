@@ -9,7 +9,10 @@ export default function Hero() {
             새 학기 맞이 • 베타 오픈
           </p>
           <h1 className="mb-4 text-4xl font-bold leading-tight md:text-5xl">
-            만들면서 배우는 <span className="text-indigo-600">프로젝트 학습</span>
+            AI와 함께하는
+          </h1>
+          <h1 className="mb-4 text-4xl font-bold leading-tight md:text-5xl">
+            <span className="text-indigo-600">빠르고 정확한 학습</span>
           </h1>
           <p className="mb-6 text-gray-600">
             짧은 강의, 바로 실습, 팀 협업까지 한 곳에서.
