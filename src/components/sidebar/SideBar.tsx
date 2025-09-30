@@ -1,8 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
-import { X, Home, HelpCircle, CalendarCheck2, MessageSquareText, Brain, Activity, BookOpen, } from "lucide-react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import {
+  X,
+  Home,
+  HelpCircle,
+  CalendarCheck2,
+  MessageSquareText,
+  Brain,
+  Activity,
+  BookOpen,
+  BarChart3,
+  Trophy
+} from "lucide-react";
 
 type SideBarProps = {
   open: boolean;
@@ -25,6 +37,7 @@ export default function SideBar({
   initials = "ST",
   onSignOut,
 }: SideBarProps) {
+  // ESC 닫기
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -32,21 +45,28 @@ export default function SideBar({
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
-  const panelBase = "fixed top-0 z-[61] h-dvh w-72 max-w-[80vw] bg-white shadow-xl transition-transform duration-300";
+  // Next/SSR 대비: 클라이언트 마운트 후에만 포털 렌더
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  const panelBase =
+    "fixed top-0 z-[61] h-dvh w-72 max-w-[80vw] bg-white shadow-xl transition-transform duration-300";
   const sideClass =
     side === "left"
       ? `${open ? "translate-x-0" : "-translate-x-full"} left-0 border-r border-slate-200`
       : `${open ? "translate-x-0" : "translate-x-full"} right-0 border-l border-slate-200`;
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <>
-      {/* 오버레이 */}
+      {/* 오버레이 (backdrop-blur 지원 브라우저에만 블러) */}
       <div
         aria-hidden
-        className={`fixed inset-0 z-[60] bg-black/30 backdrop-blur-sm transition-opacity ${
-          open ? "opacity-100" : "pointer-events-none opacity-0"
-        }`}
         onClick={onClose}
+        className={`fixed inset-0 z-[60] bg-black/30 transition-opacity
+        ${open ? "opacity-100" : "pointer-events-none opacity-0"}
+        supports-[backdrop-filter]:backdrop-blur-sm supports-[backdrop-filter]:backdrop-saturate-150`}
       />
 
       {/* 패널 */}
@@ -83,20 +103,28 @@ export default function SideBar({
           </div>
         ) : null}
 
-        {/* 메뉴: 왼쪽 거의 붙게 */}
+        {/* 메뉴 */}
         <nav className="flex flex-col gap-1 pl-1 pr-3 py-2">
           <Link href="/" onClick={onClose} className="flex items-center gap-2 rounded-lg pl-2 pr-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
             <Home className="h-4 w-4" />
             홈
           </Link>
+
           <Link href="/#guide" onClick={onClose} className="flex items-center gap-2 rounded-lg pl-2 pr-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
             <HelpCircle className="h-4 w-4" />
             사용팁
           </Link>
-          <Link href="/attendance" onClick={onClose} className="flex items-center gap-2 rounded-lg pl-2 pr-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
-            <CalendarCheck2 className="h-4 w-4" />
-            출석부
+
+          <Link href="/report" onClick={onClose} className="flex items-center gap-2 rounded-lg pl-2 pr-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+            <BarChart3 className="h-4 w-4" />
+            리포트
           </Link>
+
+          <Link href="/lank" onClick={onClose} className="flex items-center gap-2 rounded-lg pl-2 pr-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+            <Trophy className="h-4 w-4" />
+              나의 랭킹
+            </Link>
+
           <Link
             href="/library"
             onClick={onClose}
@@ -105,14 +133,17 @@ export default function SideBar({
             <BookOpen className="h-4 w-4" />
             강의자료실
           </Link>
+
           <Link href="/board" onClick={onClose} className="flex items-center gap-2 rounded-lg pl-2 pr-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
             <MessageSquareText className="h-4 w-4" />
             게시판
           </Link>
+
           <Link href="/ai/learn" onClick={onClose} className="flex items-center gap-2 rounded-lg pl-2 pr-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
             <Brain className="h-4 w-4" />
             학습AI
           </Link>
+
           <Link href="/ai/focus" onClick={onClose} className="flex items-center gap-2 rounded-lg pl-2 pr-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
             <Activity className="h-4 w-4" />
             집중도AI
@@ -133,6 +164,7 @@ export default function SideBar({
           </div>
         )}
       </aside>
-    </>
+    </>,
+    document.body
   );
 }
