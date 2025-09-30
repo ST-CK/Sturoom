@@ -1,48 +1,147 @@
+// "use client";
+
+// import { useState } from "react";
+// import type { LibraryPost } from "@/types/library";
+
+// export default function ContentCard({
+//   post,
+//   onOpen,
+//   onEdit,
+//   onDelete,
+// }: {
+//   post: LibraryPost;
+//   onOpen: (p: LibraryPost) => void;
+//   onEdit: (p: LibraryPost) => void;
+//   onDelete: (id: string) => void;
+// }) {
+//   const [menuOpen, setMenuOpen] = useState(false);
+
+//   return (
+//     <div
+//       className="relative rounded-xl border bg-white p-4 shadow-sm hover:shadow-md transition transform hover:-translate-y-1 cursor-pointer"
+//       onClick={() => onOpen(post)}
+//     >
+//       {/* 제목 */}
+//       <h3 className="mb-1 text-lg font-semibold text-gray-800">{post.title}</h3>
+//       <p className="line-clamp-2 text-sm text-gray-600">{post.summary ?? post.body}</p>
+
+//       {/* Footer */}
+//       <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
+//         <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-indigo-600">
+//           {post.week}주차
+//         </span>
+//         <span>{post.created_at?.slice(0, 10)}</span>
+//       </div>
+
+//       {/* 메뉴 버튼 */}
+//       <div
+//         className="absolute top-2 right-2"
+//         onClick={(e) => {
+//           e.stopPropagation();
+//           setMenuOpen(!menuOpen);
+//         }}
+//       >
+//         <button className="rounded-full p-1 hover:bg-gray-100">⋮</button>
+//         {menuOpen && (
+//           <div className="absolute right-0 mt-1 w-24 rounded-md bg-white shadow-lg border z-10">
+//             <button
+//               onClick={() => {
+//                 setMenuOpen(false);
+//                 onEdit(post);
+//               }}
+//               className="block w-full px-3 py-1 text-left text-sm hover:bg-gray-50"
+//             >
+//               수정
+//             </button>
+//             <button
+//               onClick={() => {
+//                 setMenuOpen(false);
+//                 onDelete(post.id);
+//               }}
+//               className="block w-full px-3 py-1 text-left text-sm text-red-600 hover:bg-red-50"
+//             >
+//               삭제
+//             </button>
+//           </div>
+//         )}
+//       </div>
+//     </div>
+//   );
+// }
 "use client";
 
-import type { Post } from "../../app/library/_data";
+import { useState } from "react";
+import type { LibraryPost } from "@/types/library";
 
-export default function ContentCard({ post, onOpen }: { post: Post; onOpen: (p: Post) => void }) {
+export default function ContentCard({
+  post,
+  onOpen,
+  onEdit,
+  onDelete,
+}: {
+  post: LibraryPost;
+  onOpen: (p: LibraryPost) => void;
+  onEdit: (p: LibraryPost) => void;
+  onDelete: (id: string) => void;
+}) {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
     <div
-      className="group relative rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-md"
+      className="relative rounded-xl border bg-white p-5 shadow hover:shadow-lg transition transform hover:-translate-y-1 cursor-pointer"
       onClick={() => onOpen(post)}
-      role="button"
     >
-      {/* 썸네일 프레임 (그라데이션) */}
-      <div className="flex items-start gap-3">
-        <div className="h-16 w-24 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-gray-200 via-gray-100 to-white ring-1 ring-gray-200" />
-        <div className="min-w-0 flex-1">
-          <div className="mb-1 flex items-center gap-2">
-            {post.status && (
-              <span className="inline-flex rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-emerald-200">
-                {post.status}
-              </span>
-            )}
-            {post.tags?.map((t, i) => (
-              <span key={i} className="inline-flex rounded-full bg-violet-50 px-2 py-0.5 text-xs text-violet-700 ring-1 ring-violet-200">
-                {t}
-              </span>
-            ))}
-          </div>
-          <div className="truncate text-[15px] font-semibold leading-5">{post.title}</div>
-          {post.dueAt && (
-            <div className="mt-1 text-xs text-gray-500">{post.dueAt} 까지</div>
-          )}
-          {post.summary && (
-            <div className="mt-2 text-xs text-gray-600">{post.summary}</div>
-          )}
-        </div>
-        <div className="absolute right-3 top-3 rounded-lg bg-gray-50 px-2 py-1 text-xs text-gray-500">⋯</div>
+      {/* 제목 */}
+      <h3 className="mb-2 text-lg font-semibold text-gray-900 line-clamp-1">
+        {post.title}
+      </h3>
+
+      {/* 요약 */}
+      <p className="mb-3 text-sm text-gray-600 line-clamp-2">
+        {post.summary ?? post.body}
+      </p>
+
+      {/* Footer */}
+      <div className="flex items-center justify-between text-xs text-gray-500">
+        <span className="rounded-full bg-indigo-50 px-2 py-0.5 font-medium text-indigo-600">
+          {post.week}주차
+        </span>
+        <span className="text-gray-400">{post.created_at?.slice(0, 10)}</span>
       </div>
 
-      {/* 하단 메타 라인 */}
-      <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
-        <div className="flex items-center gap-2">
-          <span className="rounded-md bg-gray-100 px-1.5 py-0.5">주차 {post.week}</span>
-          {post.attachments?.length ? <span>파일 {post.attachments.length}</span> : null}
-        </div>
-        <span className="opacity-80">댓글 0</span>
+      {/* 메뉴 버튼 */}
+      <div
+        className="absolute top-3 right-3"
+        onClick={(e) => {
+          e.stopPropagation();
+          setMenuOpen(!menuOpen);
+        }}
+      >
+        <button className="rounded-full p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition">
+          ⋮
+        </button>
+        {menuOpen && (
+          <div className="absolute right-0 mt-2 w-28 rounded-lg border bg-white py-1 shadow-lg z-20">
+            <button
+              onClick={() => {
+                setMenuOpen(false);
+                onEdit(post);
+              }}
+              className="block w-full px-3 py-1.5 text-left text-sm text-gray-700 hover:bg-gray-50"
+            >
+              ✏️ 수정
+            </button>
+            <button
+              onClick={() => {
+                setMenuOpen(false);
+                onDelete(post.id);
+              }}
+              className="block w-full px-3 py-1.5 text-left text-sm text-red-600 hover:bg-red-50"
+            >
+              🗑️ 삭제
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
