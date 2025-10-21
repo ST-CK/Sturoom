@@ -1,4 +1,5 @@
-// AI학습진단리포트
+"use client";
+
 import Card from "../parts/Card";
 import { Band } from "../types";
 
@@ -16,9 +17,8 @@ export default function AIReportGroup({ bands }: { bands: Band[] }) {
           >
             <div className="mb-3 h-28 flex items-end">
               <div className="w-full">
-                {/* 트랙: 회색으로 변경해 대비 강화 */}
+                {/* 트랙 바 */}
                 <div className="h-24 w-10 mx-auto rounded-t-md bg-neutral-200/70 overflow-hidden">
-                  {/* 채워지는 바: 진한 그라데이션 (원래처럼 translateY 사용) */}
                   <div
                     className="h-full w-full bg-gradient-to-t from-blue-600 to-indigo-600"
                     style={{ transform: `translateY(${100 - b.value}%)` }}

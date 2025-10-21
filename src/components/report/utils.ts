@@ -6,16 +6,22 @@ export const dateAdd = (d: Date, days: number) => {
   x.setDate(x.getDate() + days);
   return x;
 };
+
 export const fmtDate = (d: Date) => d.toISOString().slice(0, 10);
 
 export function calcStreak(dots: { visited: boolean }[]) {
-  let current = 0, longest = 0, run = 0;
-  for (const d of dots) { // 전체에서 최장
-    if (d.visited) { run++; longest = Math.max(longest, run); }
-    else run = 0;
+  let current = 0,
+    longest = 0,
+    run = 0;
+  for (const d of dots) {
+    if (d.visited) {
+      run++;
+      longest = Math.max(longest, run);
+    } else run = 0;
   }
-  for (let i = dots.length - 1; i >= 0; i--) { // 끝에서 현재 연속
-    if (dots[i].visited) current++; else break;
+  for (let i = dots.length - 1; i >= 0; i--) {
+    if (dots[i].visited) current++;
+    else break;
   }
   return { current, longest };
 }

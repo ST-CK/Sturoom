@@ -336,3 +336,29 @@ create table comments (
   content text not null,
   created_at timestamp with time zone default now()
 );
+
+
+
+
+
+
+
+
+
+리포트
+-- ✅ 리포트용 뷰 생성
+CREATE OR REPLACE VIEW report_library_overview AS
+SELECT
+  r.id AS room_id,
+  r.title AS room_title,
+  r.instructor,
+  r.track,
+  r.is_new,
+  r.created_at AS room_created_at,
+  COUNT(p.id) AS post_count,
+  MAX(p.created_at) AS last_post_date,
+  ROUND(AVG(p.week))::INT AS avg_week
+FROM library_rooms r
+LEFT JOIN library_posts p ON r.id = p.room_id
+GROUP BY r.id, r.title, r.instructor, r.track, r.is_new, r.created_at
+ORDER BY post_count DESC;
