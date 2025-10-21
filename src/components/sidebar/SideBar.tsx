@@ -115,6 +115,24 @@ export default function SideBar({
             사용팁
           </Link>
 
+          <Link
+            href="/library"
+            onClick={onClose}
+            className="flex items-center gap-2 rounded-lg pl-2 pr-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            <BookOpen className="h-4 w-4" />
+            강의자료실
+          </Link>
+
+          <Link
+            href="/quiz"
+            onClick={onClose}
+            className="flex items-center gap-2 rounded-lg pl-2 pr-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            <Brain className="h-4 w-4" />
+            AI 퀴즈
+          </Link>
+
           <Link href="/report" onClick={onClose} className="flex items-center gap-2 rounded-lg pl-2 pr-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
             <BarChart3 className="h-4 w-4" />
             리포트
@@ -124,15 +142,6 @@ export default function SideBar({
             <Trophy className="h-4 w-4" />
               나의 랭킹
             </Link>
-
-          <Link
-            href="/library"
-            onClick={onClose}
-            className="flex items-center gap-2 rounded-lg pl-2 pr-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-          >
-            <BookOpen className="h-4 w-4" />
-            강의자료실
-          </Link>
 
           <Link href="/board" onClick={onClose} className="flex items-center gap-2 rounded-lg pl-2 pr-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
             <MessageSquareText className="h-4 w-4" />
