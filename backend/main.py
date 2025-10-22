@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routes import quiz
+from routes import quiz, chat
 
 app = FastAPI()
 
@@ -13,7 +13,8 @@ app.add_middleware(
 
 # 기능별 라우터 등록
 app.include_router(quiz.router, prefix="/quiz")
+app.include_router(chat.router, prefix="/chat")
 
 @app.get("/")
 def root():
-    return {"status": "MCP Python Server running", "routes": ["/quiz"]}
+    return {"status": "MCP Python Server running", "routes": ["/quiz", "/chat"]}
