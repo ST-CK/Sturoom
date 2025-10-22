@@ -4,39 +4,58 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import type { LibraryRoom } from "@/types/library";
 
-export default function AddRoomModal({
+export default function EditRoomModal({
+  room,
   onClose,
-  onAdded,
+  onUpdated,
 }: {
+  room: LibraryRoom;
   onClose: () => void;
-  onAdded: (room: LibraryRoom) => void;
+  onUpdated: (room: LibraryRoom) => void;
 }) {
-  const [title, setTitle] = useState("");
-  const [instructor, setInstructor] = useState("");
-  const [track, setTrack] = useState("교과(오프라인)");
-  const [thumbnail, setThumbnail] = useState("");
+  const [title, setTitle] = useState(room.title);
+  const [instructor, setInstructor] = useState(room.instructor ?? "");
+  const [track, setTrack] = useState(room.track ?? "교과(오프라인)");
+  const [thumbnail, setThumbnail] = useState(room.thumbnail ?? "");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  const handleSubmit = async () => {
-    setErr(null);
-    if (!title.trim()) return setErr("수업명을 입력하세요.");
-    if (!instructor.trim()) return setErr("담당 교사를 입력하세요.");
-
+  // ✅ 수정 처리
+  const handleUpdate = async () => {
     setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from("library_rooms")
-        .insert([{ title, instructor, track, thumbnail }])
-        .select("*")
-        .single();
+    setErr(null);
 
-      if (error) throw error;
-      if (data) onAdded(data as LibraryRoom);
+    try {
+      console.log("수정 요청 ID:", room.id);
+
+      // 🔹 1차 업데이트
+      const { error: updateError } = await supabase
+        .from("library_rooms")
+        .update({
+          title,
+          instructor,
+          track,
+          thumbnail,
+        })
+        .eq("id", room.id);
+
+      if (updateError) throw updateError;
+
+      // 🔹 2차 재조회 (업데이트된 데이터 확인)
+      const { data: updated, error: fetchError } = await supabase
+        .from("library_rooms")
+        .select("*")
+        .eq("id", room.id)
+        .maybeSingle();
+
+      if (fetchError) throw fetchError;
+      if (!updated) throw new Error("수정한 데이터를 다시 불러올 수 없습니다.");
+
+      onUpdated(updated as LibraryRoom);
       onClose();
     } catch (e: any) {
-      console.error(e);
-      setErr(e.message ?? "수업 생성 오류");
+      console.error("수업 수정 오류:", e);
+      setErr(e.message ?? "수정 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);
     }
@@ -47,7 +66,7 @@ export default function AddRoomModal({
       <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl">
         {/* Header */}
         <div className="flex items-center justify-between border-b px-6 py-4">
-          <h2 className="text-lg font-bold text-gray-800">새 수업 추가</h2>
+          <h2 className="text-lg font-bold text-gray-800">수업 수정</h2>
           <button
             onClick={onClose}
             className="text-gray-400 transition hover:text-gray-600"
@@ -59,33 +78,27 @@ export default function AddRoomModal({
         {/* Body */}
         <div className="px-6 py-5 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              수업명 <span className="text-red-500">*</span>
-            </label>
+            <label className="block text-sm font-medium mb-1">수업명</label>
             <input
-              placeholder="예: 데이터베이스 기초"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="w-full rounded-lg border px-3 py-2 focus:border-indigo-500 focus:ring focus:ring-indigo-200"
+              placeholder="예: 데이터베이스 기초"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              담당 교사/교수 <span className="text-red-500">*</span>
-            </label>
+            <label className="block text-sm font-medium mb-1">담당 교사/교수</label>
             <input
-              placeholder="예: 홍길동 교수"
               value={instructor}
               onChange={(e) => setInstructor(e.target.value)}
               className="w-full rounded-lg border px-3 py-2 focus:border-indigo-500 focus:ring focus:ring-indigo-200"
+              placeholder="예: 홍길동 교수"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              트랙
-            </label>
+            <label className="block text-sm font-medium mb-1">트랙</label>
             <select
               value={track}
               onChange={(e) => setTrack(e.target.value)}
@@ -98,14 +111,12 @@ export default function AddRoomModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              썸네일 URL (선택)
-            </label>
+            <label className="block text-sm font-medium mb-1">썸네일 URL</label>
             <input
-              placeholder="https://example.com/thumbnail.jpg"
               value={thumbnail}
               onChange={(e) => setThumbnail(e.target.value)}
               className="w-full rounded-lg border px-3 py-2 focus:border-indigo-500 focus:ring focus:ring-indigo-200"
+              placeholder="https://example.com/thumbnail.jpg"
             />
           </div>
 
@@ -123,7 +134,7 @@ export default function AddRoomModal({
             취소
           </button>
           <button
-            onClick={handleSubmit}
+            onClick={handleUpdate}
             disabled={loading}
             className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition disabled:opacity-50"
           >
