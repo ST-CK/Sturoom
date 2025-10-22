@@ -22,3 +22,13 @@ export type LibraryPost = {
   images?: string[];
   created_at: string;
 };
+
+
+export type LibraryRoomMember = {
+  id: string;          
+  room_id: string;     
+  user_id: string;     
+  role: "student" | "teacher" | "assistant";
+  invited_by: string;
+  created_at: string;
+};
