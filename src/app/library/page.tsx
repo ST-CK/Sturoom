@@ -124,31 +124,58 @@ export default function LibraryListPage() {
   // ✅ 데이터 및 권한 로드
   useEffect(() => {
     async function fetchData() {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       if (!user) {
         setLoading(false);
         return;
       }
 
-      // 프로필에서 role 가져오기
+      // ✅ 1️⃣ 사용자 역할 조회
       const { data: profile } = await supabase
         .from("profiles")
         .select("role")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
-      setRole(profile?.role ?? "student");
+      const userRole = profile?.role ?? "student";
+      setRole(userRole);
 
-      // 수업 목록 가져오기
-      const { data: roomData, error } = await supabase
-        .from("library_rooms")
-        .select("*")
-        .order("created_at", { ascending: false });
+      // ✅ 2️⃣ 교사/관리자 → 전체 수업
+      if (userRole === "admin" || userRole === "teacher") {
+        const { data: allRooms, error } = await supabase
+          .from("library_rooms")
+          .select("*")
+          .order("created_at", { ascending: false });
 
-      if (!error && roomData) {
-        setRooms(roomData as LibraryRoom[]);
+        if (!error && allRooms) setRooms(allRooms as LibraryRoom[]);
+        setLoading(false);
+        return;
       }
 
+      // ✅ 3️⃣ 학생 → 초대받은 수업만
+      const { data: memberships, error: memberError } = await supabase
+        .from("library_room_members")
+        .select("room_id")
+        .eq("user_id", user.id);
+
+      if (memberError || !memberships || memberships.length === 0) {
+        setRooms([]); // 초대받은 수업 없음
+        setLoading(false);
+        return;
+      }
+
+      const roomIds = memberships.map((m) => m.room_id);
+
+      const { data: allowedRooms, error: roomError } = await supabase
+        .from("library_rooms")
+        .select("*")
+        .in("id", roomIds)
+        .order("created_at", { ascending: false });
+
+      if (!roomError && allowedRooms) setRooms(allowedRooms as LibraryRoom[]);
       setLoading(false);
     }
 
@@ -192,7 +219,7 @@ export default function LibraryListPage() {
 
   return (
     <div className="mx-auto w-4/5 max-w-5xl py-8">
-      {/* Header */}
+      {/* 헤더 */}
       <div className="mb-6 flex items-center justify-between">
         <h1 className="px-1 text-2xl font-bold text-gray-800">내 강의자료실</h1>
         {(role === "admin" || role === "teacher") && (
@@ -205,18 +232,14 @@ export default function LibraryListPage() {
         )}
       </div>
 
-      {/* 강의실 목록 */}
+      {/* 본문 */}
       {rooms.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 p-10 text-gray-500">
-          <p className="text-lg font-medium">아직 등록된 수업이 없습니다.</p>
-          {(role === "admin" || role === "teacher") && (
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="mt-4 rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white hover:bg-indigo-700"
-            >
-              첫 수업 추가하기
-            </button>
-          )}
+          <p className="text-lg font-medium">
+            {role === "student"
+              ? "아직 초대받은 수업이 없습니다."
+              : "등록된 수업이 없습니다."}
+          </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -249,18 +272,20 @@ export default function LibraryListPage() {
       )}
 
       {/* 모달 */}
-      {showAddModal && (role === "admin" || role === "teacher") && (
+      {showAddModal && (
         <AddRoomModal
           onClose={() => setShowAddModal(false)}
           onAdded={(newRoom) => setRooms([newRoom, ...rooms])}
         />
       )}
 
-      {editRoom && (role === "admin" || role === "teacher") && (
+      {editRoom && (
         <EditRoomModal
           room={editRoom}
           onClose={() => setEditRoom(null)}
-          onUpdated={handleUpdatedRoom}
+          onUpdated={(updated) =>
+            setRooms((prev) => prev.map((r) => (r.id === updated.id ? updated : r)))
+          }
         />
       )}
     </div>

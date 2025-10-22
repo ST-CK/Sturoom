@@ -8,6 +8,7 @@ import ContentCard from "./ContentCard";
 import PostModal from "./PostModal";
 import AddPostModal from "./AddPostModal";
 import EditPostModal from "./EditPostModal";
+import MembersSection from "./MembersSection";
 
 export default function ClientRoom({
   roomId,
@@ -28,26 +29,35 @@ export default function ClientRoom({
   // ✅ 유저 role 가져오기
   useEffect(() => {
     async function fetchRole() {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
+
       const { data: profile } = await supabase
         .from("profiles")
         .select("role")
         .eq("id", user.id)
         .single();
+
       setRole(profile?.role ?? "student");
     }
     fetchRole();
   }, []);
 
-  // ✅ 전체보기 / 주차별 필터링
+  // ✅ 주차별 필터링
   const filteredPosts = useMemo(
     () => (activeWeek === null ? posts : posts.filter((p) => p.week === activeWeek)),
     [activeWeek, posts]
   );
 
-  // ✅ 게시물 삭제
+  // ✅ 게시물 삭제 (관리자/교사만)
   async function handleDelete(id: string) {
+    if (role !== "admin" && role !== "teacher") {
+      alert("삭제 권한이 없습니다.");
+      return;
+    }
+
     const { error } = await supabase.from("library_posts").delete().eq("id", id);
     if (!error) {
       setPosts(posts.filter((p) => p.id !== id));
@@ -57,7 +67,11 @@ export default function ClientRoom({
   return (
     <div className="flex gap-6">
       {/* 사이드바 (주차별 보기) */}
-      <WeekSidebar weeks={initialWeeks} activeWeek={activeWeek} onSelect={setActiveWeek} />
+      <WeekSidebar
+        weeks={initialWeeks}
+        activeWeek={activeWeek}
+        onSelect={setActiveWeek}
+      />
 
       <div className="flex-1">
         {/* 상단 헤더 */}
@@ -65,6 +79,8 @@ export default function ClientRoom({
           <h2 className="text-sm font-semibold text-gray-600">
             {activeWeek === null ? "전체 콘텐츠" : `${activeWeek}주차`}
           </h2>
+
+          {/* ✅ 관리자/교사만 자료 추가 버튼 */}
           {(role === "admin" || role === "teacher") && (
             <button
               onClick={() => setShowAddModal(true)}
@@ -91,6 +107,7 @@ export default function ClientRoom({
                 onOpen={setOpen}
                 onEdit={setEditPost}
                 onDelete={handleDelete}
+                role={role} // ✅ 역할 전달
               />
             ))}
           </div>
@@ -114,6 +131,11 @@ export default function ClientRoom({
             }}
           />
         )}
+
+        {/* ✅ 멤버 목록 섹션 (항상 하단에 표시) */}
+        <div className="mt-8 border-t pt-4">
+          <MembersSection roomId={roomId} />
+        </div>
       </div>
     </div>
   );
