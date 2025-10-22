@@ -111,13 +111,8 @@ export default function LibraryRoomPage({ params }: { params: Promise<{ id: stri
         )}
       </div>
 
-      {/* ✅ ClientRoom 내부에 MembersSection 이미 포함됨 */}
       <ClientRoom roomId={roomId} initialWeeks={weeks} initialPosts={posts} />
 
-      {/* ❌ MembersList 제거 (중복 렌더링 방지) */}
-      {/* <MembersList roomId={roomId} /> */}
-
-      {/* 초대 모달 */}
       {showInviteModal && (
         <AddMemberModal
           roomId={roomId}
