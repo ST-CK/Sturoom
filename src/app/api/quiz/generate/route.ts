@@ -1,29 +1,142 @@
 import { NextResponse } from "next/server";
-import OpenAI from "openai";
+import { supabase } from "@/lib/supabaseClient";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// ✅ 백엔드 URL — .env.local 에서 NEXT_PUBLIC_API_BASE_URL로 지정
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:5000";
 
+/* 
+========================================
+1️⃣ 세션 생성 (/quiz/session/start)
+========================================
+*/
 export async function POST(req: Request) {
-  const { content, mode } = await req.json();
+  try {
+    const body = await req.json();
+    const { user_id, room_id, post_id, mode } = body;
 
-  const prompt = `
-  아래는 수업 자료입니다.
-  ===
-  ${content}
-  ===
+    if (!user_id || !room_id || !post_id) {
+      return NextResponse.json(
+        { error: "user_id, room_id, post_id가 필요합니다." },
+        { status: 400 }
+      );
+    }
 
-  위 내용을 바탕으로 ${mode === "ox" ? "OX 문제" : mode === "short" ? "단답형 문제" : "객관식 5지선다형 문제"} 한 문제를 만들어줘.
-  문제와 선택지(있다면)만 JSON 형태로 응답해.
-  예시:
-  { "question": "...", "options": ["...","..."], "answer": "..." }
-  `;
+    const res = await fetch(`${BACKEND_URL}/quiz/session/start`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user_id,
+        room_id,
+        post_id,
+        mode,
+      }),
+    });
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [{ role: "user", content: prompt }],
-  });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.error || "세션 생성 실패");
 
-  const text = response.choices[0].message?.content;
-  const json = JSON.parse(text ?? "{}");
-  return NextResponse.json(json);
+    return NextResponse.json(data, { status: 200 });
+  } catch (err: any) {
+    console.error("❌ /quiz/session/start 에러:", err);
+    return NextResponse.json(
+      { error: err.message || "서버 내부 오류" },
+      { status: 500 }
+    );
+  }
+}
+
+/* 
+========================================
+2️⃣ 파일 기반 퀴즈 생성 (/quiz/from-url)
+========================================
+*/
+export async function PUT(req: Request) {
+  try {
+    const body = await req.json();
+    const { file_urls, mode, user_id, room_id, week_id } = body;
+
+    if (!file_urls || !Array.isArray(file_urls)) {
+      return NextResponse.json(
+        { error: "file_urls 배열이 필요합니다." },
+        { status: 400 }
+      );
+    }
+
+    const res = await fetch(`${BACKEND_URL}/quiz/from-url`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        file_urls,
+        mode,
+        user_id,
+        room_id,
+        week_id,
+      }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.error || "퀴즈 생성 실패");
+
+    return NextResponse.json(data, { status: 200 });
+  } catch (err: any) {
+    console.error("❌ /quiz/from-url 에러:", err);
+    return NextResponse.json(
+      { error: err.message || "서버 내부 오류" },
+      { status: 500 }
+    );
+  }
+}
+
+/* 
+========================================
+3️⃣ 퀴즈 시도 기록 (/quiz/attempt)
+========================================
+*/
+export async function PATCH(req: Request) {
+  try {
+    const body = await req.json();
+    const { session_id, question_id, user_answer, user_email } = body;
+
+    if (!question_id || !user_email) {
+      return NextResponse.json(
+        { error: "question_id 또는 user_email 누락" },
+        { status: 400 }
+      );
+    }
+
+    // ✅ 이메일을 uuid로 변환 (profiles 테이블 조회)
+    const { data: profile, error: profileErr } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("email", user_email)
+      .single();
+
+    if (profileErr || !profile)
+      throw new Error("해당 이메일의 UUID를 찾을 수 없습니다.");
+
+    const user_id = profile.id;
+
+    const res = await fetch(`${BACKEND_URL}/quiz/attempt`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        session_id,
+        question_id,
+        user_answer,
+        user_id,
+      }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.error || "퀴즈 시도 저장 실패");
+
+    return NextResponse.json(data, { status: 200 });
+  } catch (err: any) {
+    console.error("❌ /quiz/attempt 에러:", err);
+    return NextResponse.json(
+      { error: err.message || "서버 내부 오류" },
+      { status: 500 }
+    );
+  }
 }
