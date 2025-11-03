@@ -1,19 +1,17 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseClient";
 
+// ✅ 강의실 목록
 export async function GET() {
-  try {
-    // ✅ 실제 테이블: library_rooms
-    const { data, error } = await supabase
-      .from("library_rooms")
-      .select("id, title")
-      .order("title", { ascending: true });
+  const { data, error } = await supabase
+    .from("library_rooms")
+    .select("id, title, instructor, track, thumbnail, created_at")
+    .order("created_at", { ascending: false });
 
-    if (error) throw error;
-    return NextResponse.json(data ?? []);
-  } catch (err) {
-    console.error("❌ 강의 불러오기 실패:", err);
-    // 프론트가 빈 배열도 처리하도록 200 + [] 반환
-    return NextResponse.json([], { status: 200 });
+  if (error) {
+    console.error("❌ 강의 목록 조회 실패:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  return NextResponse.json(data);
 }
