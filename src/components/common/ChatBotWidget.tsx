@@ -27,13 +27,15 @@ const ChatBotWidget: React.FC = () => {
     setInput("");
 
     try {
-      const res = await fetch("http://localhost:8000/chat", {
+      const res = await fetch("http://127.0.0.1:5000/chat/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: input }),
       });
-      const data = await res.json();
 
+      if (!res.ok) throw new Error("서버 응답 오류");
+
+      const data = await res.json();
       const botMsg: Message = {
         sender: "bot",
         text: data.reply || "응답을 불러오지 못했어요 😢",
