@@ -12,6 +12,7 @@ const ChatBotWidget: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
+  const [isComposing, setIsComposing] = useState(false); // 🧩 한글 조합 상태 감지
   const chatRef = useRef<HTMLDivElement>(null);
 
   const sendMessage = async () => {
@@ -62,52 +63,52 @@ const ChatBotWidget: React.FC = () => {
   return (
     <>
       {/* 💬 플로팅 아이콘 */}
-      <div
+      <button
         onClick={() => setOpen(!open)}
-        className="fixed bottom-6 right-6 bg-blue-600 text-white rounded-full p-4 cursor-pointer shadow-lg hover:scale-105 hover:bg-blue-500 transition"
+        className="fixed bottom-6 right-6 bg-gradient-to-r from-blue-600 to-blue-500 text-white p-4 rounded-full shadow-xl hover:scale-105 transition-transform"
       >
         💬
-      </div>
+      </button>
 
-      {/* 🪄 채팅창 */}
+      {/* 💎 채팅창 */}
       {open && (
-        <div className="fixed bottom-24 right-6 w-80 h-[500px] bg-[#F9FAFB] rounded-2xl shadow-2xl border flex flex-col">
+        <div className="fixed bottom-24 right-6 w-80 h-[520px] bg-white/95 backdrop-blur-xl rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.15)] border border-gray-100 flex flex-col overflow-hidden transition-all">
           {/* 헤더 */}
-          <div className="flex justify-between items-center bg-blue-600 text-white p-3 rounded-t-2xl">
-            <h2 className="font-semibold">Sturoom AI 도우미</h2>
+          <div className="flex justify-between items-center bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-3">
+            <h2 className="font-semibold text-sm">Sturoom AI 도우미</h2>
             <button
               onClick={() => setOpen(false)}
-              className="font-bold hover:text-gray-200"
+              className="font-bold hover:text-gray-200 transition"
             >
-              ✖
+              ✕
             </button>
           </div>
 
-          {/* 메시지 리스트 */}
+          {/* 메시지 영역 */}
           <div
             ref={chatRef}
-            className="flex-1 overflow-y-auto p-3 flex flex-col space-y-2 bg-[#EFF2F6]"
+            className="flex-1 overflow-y-auto px-4 py-3 space-y-3 scrollbar-thin scrollbar-thumb-blue-200 scrollbar-track-transparent"
           >
             {messages.map((m, i) => (
               <div
                 key={i}
-                className={`flex ${
+                className={`flex items-end ${
                   m.sender === "user" ? "justify-end" : "justify-start"
                 }`}
               >
                 {m.sender === "bot" && (
-                  <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm font-bold mr-2">
+                  <div className="w-7 h-7 mr-2 rounded-full bg-blue-500 text-white text-xs font-semibold flex items-center justify-center shadow-md">
                     AI
                   </div>
                 )}
                 <div
-                  className={`max-w-[70%] px-3 py-2 rounded-2xl text-sm ${
+                  className={`max-w-[70%] px-4 py-2 rounded-2xl text-sm leading-relaxed ${
                     m.sender === "user"
-                      ? "bg-blue-500 text-white rounded-br-none"
-                      : "bg-white text-gray-800 rounded-bl-none border"
+                      ? "bg-blue-500 text-white rounded-br-none shadow-sm"
+                      : "bg-gray-100 text-gray-800 rounded-bl-none border border-gray-200"
                   }`}
                 >
-                  <p>{m.text}</p>
+                  <p className="whitespace-pre-wrap">{m.text}</p>
                   <span
                     className={`text-[10px] mt-1 block text-right ${
                       m.sender === "user" ? "text-blue-100" : "text-gray-400"
@@ -121,17 +122,21 @@ const ChatBotWidget: React.FC = () => {
           </div>
 
           {/* 입력창 */}
-          <div className="flex border-t bg-white rounded-b-2xl">
+          <div className="flex border-t border-gray-200 bg-gray-50 p-2 items-center">
             <input
-              className="flex-1 px-3 py-2 text-sm outline-none rounded-bl-2xl"
+              className="flex-1 px-3 py-2 text-sm rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
               placeholder="메시지를 입력하세요..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+              onCompositionStart={() => setIsComposing(true)} // 🧩 한글 조합 시작
+              onCompositionEnd={() => setIsComposing(false)}   // 🧩 한글 조합 끝
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !isComposing) sendMessage(); // ✅ 중복 방지
+              }}
             />
             <button
               onClick={sendMessage}
-              className="bg-blue-600 text-white px-4 rounded-br-2xl font-semibold hover:bg-blue-500 transition"
+              className="ml-2 px-4 py-2 text-sm bg-gradient-to-r from-blue-600 to-blue-500 text-white font-medium rounded-full hover:opacity-90 active:scale-95 transition"
             >
               전송
             </button>
