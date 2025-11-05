@@ -24,9 +24,6 @@ export default function EditPostPage() {
         setTitle(p.title);
         setContent(p.content);
         setIsPinned(p.isPinned);
-        // 상세 API는 익명 여부를 표시명으로만 내려주니, 편집에선 서버의 값을 다시 읽는 편이 안전
-        // 간단하게는 익명 토글을 off로 두고 필요시 상세 API를 확장하세요.
-        // 여기서는 목록/상세와 동일하게 isAnonymous를 수동 관리할 수 있게 UI만 둠.
       } catch {
         alert("게시글을 불러오지 못했습니다.");
         router.replace("/board");
