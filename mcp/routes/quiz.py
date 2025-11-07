@@ -1,4 +1,3 @@
-# mcp/routes/quiz.py
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 import os, json, httpx
@@ -80,7 +79,7 @@ def _build_prompt(all_text: str, mode: str) -> str:
 """
 
 
-# ---------------- 세션 생성 ----------------
+# ---------------- 세션 & 실행(run) 생성 ----------------
 @router.post("/session/start")
 async def start_quiz_session(req: Request):
     data = await req.json()
@@ -92,20 +91,52 @@ async def start_quiz_session(req: Request):
     if not user_id:
         return JSONResponse(status_code=400, content={"error": "user_id가 필요합니다."})
 
-    session = {
-        "user_id": user_id,
-        "lecture_id": room_id,
-        "week_id": week_id,
-        "mode": mode,
-        "created_at": datetime.now(KST).isoformat(),
-    }
-
     try:
-        result = supabase.table("quiz_sessions").insert(session).execute()
-        print("✅ quiz_session 생성 성공:", result.data[0])
-        return JSONResponse(result.data[0])
+        # ✅ 기존 세션 존재 확인
+        existing = (
+            supabase.table("quiz_sessions")
+            .select("id")
+            .eq("user_id", user_id)
+            .eq("lecture_id", room_id)
+            .eq("week_id", week_id)
+            .limit(1)
+            .execute()
+        )
+
+        if existing.data and len(existing.data) > 0:
+            session_id = existing.data[0]["id"]
+            print(f"♻️ 기존 세션 재사용: {session_id}")
+        else:
+            # ✅ 새 세션 생성
+            session = {
+                "user_id": user_id,
+                "lecture_id": room_id,
+                "week_id": week_id,
+                "mode": mode,
+                "quiz_count": 0,
+                "created_at": datetime.now(KST).isoformat(),
+            }
+            s_res = supabase.table("quiz_sessions").insert(session).execute()
+            session_id = s_res.data[0]["id"]
+            print(f"🆕 새 세션 생성: {session_id}")
+
+        # ✅ 실행(run) 생성 (퀴즈 시도 단위)
+        run = {
+            "session_id": session_id,
+            "user_id": user_id,
+            "lecture_id": room_id,
+            "week_id": week_id,
+            "mode": mode,
+            "started_at": datetime.now(KST).isoformat(),
+        }
+        r_res = supabase.table("quiz_runs").insert(run).execute()
+        run_id = r_res.data[0]["id"]
+
+        print(f"✅ 세션/런 준비 완료: session={session_id}, run={run_id}")
+        return JSONResponse({"session_id": session_id, "run_id": run_id})
+
     except Exception as e:
-        print("❌ quiz_session 생성 실패:", e)
+        print("❌ 세션 생성 실패:", e)
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 
@@ -118,6 +149,8 @@ async def generate_quiz_from_url(req: Request):
     user_id = data.get("user_id")
     room_id = data.get("room_id")
     week_id = data.get("week_id")
+    session_id = data.get("session_id")
+    run_id = data.get("run_id")
 
     if not file_urls:
         return JSONResponse(status_code=400, content={"error": "파일 URL이 없습니다."})
@@ -145,7 +178,7 @@ async def generate_quiz_from_url(req: Request):
             temperature=0.3,
         )
         quiz_text = resp.choices[0].message.content
-        json_str = quiz_text[quiz_text.find("["):quiz_text.rfind("]")+1]
+        json_str = quiz_text[quiz_text.find("["):quiz_text.rfind("]") + 1]
         quiz_data = json.loads(json_str)
     except Exception as e:
         print("❌ OpenAI 처리 실패:", e)
@@ -153,23 +186,11 @@ async def generate_quiz_from_url(req: Request):
 
     # ✅ Supabase 저장
     try:
-        session_res = supabase.table("quiz_sessions").insert({
-            "user_id": user_id,
-            "lecture_id": room_id,
-            "week_id": week_id,
-            "model": "gpt-4o-mini",
-            "mode": mode,
-            "file_urls": file_urls,
-            "quiz_count": len(quiz_data),
-            "created_at": datetime.now(KST).isoformat(),
-        }).execute()
-
-        session_id = session_res.data[0]["id"]
-
+        # 기존 session/run을 사용
         questions = []
         for q in quiz_data:
-            answer = q.get("answer") or q.get("correct_answer") or q.get("correct") or ""
-            explanation = q.get("explanation") or q.get("reason") or ""
+            answer = q.get("answer") or q.get("correct_answer") or ""
+            explanation = q.get("explanation") or ""
             choices = q.get("choices") or q.get("options")
             cleaned_choices = []
             if isinstance(choices, list):
@@ -188,9 +209,29 @@ async def generate_quiz_from_url(req: Request):
 
         inserted = supabase.table("quiz_questions").insert(questions).execute()
 
+        # ✅ quiz_runs 업데이트
+        supabase.table("quiz_runs").update({"quiz_count": len(inserted.data)}).eq("id", run_id).execute()
+
+        # ✅ quiz_sessions에도 quiz_count 반영
+        supabase.table("quiz_sessions").update({
+            "quiz_count": len(inserted.data)
+        }).eq("id", session_id).execute()
+
+        # ✅ 첫 메시지 로그 저장
+        supabase.table("quiz_messages").insert({
+            "session_id": session_id,
+            "run_id": run_id,
+            "user_id": user_id,
+            "role": "ai",
+            "kind": "quiz",
+            "payload": json.dumps({"quiz": inserted.data}),
+            "order_index": 1
+        }).execute()
+
         return JSONResponse({
             "message": "퀴즈 생성 및 저장 완료",
             "session_id": session_id,
+            "run_id": run_id,
             "quiz_count": len(inserted.data),
             "quiz": inserted.data
         })
@@ -210,11 +251,12 @@ async def record_quiz_attempt(req: Request):
         question_id = data.get("question_id")
         user_answer = (data.get("user_answer") or "").strip()
         session_id = data.get("session_id")
+        run_id = data.get("run_id")
 
         if not user_email or not question_id:
             return JSONResponse(status_code=400, content={"error": "user_email 또는 question_id 누락"})
 
-        # ✅ 이메일로 user_id 조회
+        # ✅ user_id 조회
         user_res = supabase.table("profiles").select("id").eq("email", user_email).single().execute()
         if not user_res.data:
             return JSONResponse(status_code=404, content={"error": "해당 이메일 사용자를 찾을 수 없습니다."})
@@ -224,11 +266,10 @@ async def record_quiz_attempt(req: Request):
         q_res = supabase.table("quiz_questions").select("answer").eq("id", question_id).single().execute()
         if not q_res.data:
             return JSONResponse(status_code=404, content={"error": "문제를 찾을 수 없습니다."})
-
         correct_answer = (q_res.data["answer"] or "").strip()
         is_correct = user_answer.lower() == correct_answer.lower()
 
-        # ✅ 결과 저장 (created_at 없음)
+        # ✅ 결과 저장
         supabase.table("quiz_answers").insert({
             "session_id": session_id,
             "question_id": question_id,
@@ -237,13 +278,39 @@ async def record_quiz_attempt(req: Request):
             "is_correct": is_correct
         }).execute()
 
-        # ❌ 오답일 경우 따로 기록 (created_at 없음)
+        # ✅ 오답 기록
         if not is_correct:
             supabase.table("quiz_incorrect_notes").insert({
                 "user_id": user_id,
                 "question_id": question_id,
                 "reviewed": False
             }).execute()
+
+        # ✅ 메시지 로그 저장
+        order_idx = int(datetime.now().timestamp())
+        messages = [
+            {
+                "session_id": session_id,
+                "run_id": run_id,
+                "user_id": user_id,
+                "role": "user",
+                "kind": "text",
+                "payload": json.dumps({"text": user_answer}),
+                "order_index": order_idx,
+            },
+            {
+                "session_id": session_id,
+                "run_id": run_id,
+                "user_id": user_id,
+                "role": "ai",
+                "kind": "text",
+                "payload": json.dumps({
+                    "text": "✅ 정답입니다!" if is_correct else f"❌ 오답입니다. 정답은 {correct_answer}"
+                }),
+                "order_index": order_idx + 1,
+            },
+        ]
+        supabase.table("quiz_messages").insert(messages).execute()
 
         print("✅ 퀴즈 채점 완료:", {"is_correct": is_correct, "정답": correct_answer})
         return JSONResponse({

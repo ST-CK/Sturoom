@@ -11,6 +11,7 @@ type Props = {
     weekId: string;
     mode: QuizMode;
     sessionId: string;
+    runId: string;
   }) => void;
 };
 
@@ -24,66 +25,92 @@ export default function QuizCard({ onStart }: Props) {
   const [mode, setMode] = useState<QuizMode>("mixed");
   const [loading, setLoading] = useState(false);
 
+  // 🔒 절대 키 이름 바꾸지 않음 (.env.local 그대로 사용)
   const BACKEND_URL =
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:5000";
 
   // ✅ 강의 목록 불러오기
   useEffect(() => {
     (async () => {
-      const res = await fetch("/api/library/classrooms");
-      if (!res.ok) return;
-      const data = await res.json();
-      setLectures(data);
+      try {
+        const res = await fetch("/api/library/classrooms");
+        if (!res.ok) return;
+        const data = await res.json();
+        setLectures(data || []);
+      } catch {
+        // silently ignore
+      }
     })();
   }, []);
 
-  // ✅ 주차 목록 불러오기
+  // ✅ 주차 목록 불러오기 (강의 선택 시)
   useEffect(() => {
     if (!lectureId) {
       setWeeks([]);
+      setWeekId("");
       return;
     }
     (async () => {
-      const res = await fetch(`/api/library/classrooms/${lectureId}/weeks`);
-      if (!res.ok) return;
-      const data = await res.json();
-      setWeeks(data);
+      try {
+        const res = await fetch(`/api/library/classrooms/${lectureId}/weeks`);
+        if (!res.ok) return;
+        const data = await res.json();
+        setWeeks(data || []);
+      } catch {
+        // silently ignore
+      }
     })();
   }, [lectureId]);
 
-  // ✅ 퀴즈 시작
+  // ✅ 세션만 생성 (실제 퀴즈 생성은 상위 컴포넌트에서 from-url 호출)
   async function handleStart() {
-    if (!lectureId || !weekId) return;
+    if (!lectureId || !weekId) {
+      alert("강의와 주차를 먼저 선택하세요.");
+      return;
+    }
     setLoading(true);
-
     try {
       const {
         data: { user },
       } = await supabase.auth.getUser();
 
-      if (!user) {
+      if (!user?.id) {
         alert("로그인이 필요합니다.");
         return;
       }
-
-      const userId = user.id;
 
       const sessionRes = await fetch(`${BACKEND_URL}/quiz/session/start`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          user_id: userId,
+          user_id: user.id,
           room_id: lectureId,
-          post_id: weekId, // ✅ 주차 단위로 세션 생성
+          post_id: weekId, // 백엔드가 post_id로 받도록 유지
           mode,
         }),
       });
 
-      const session = await sessionRes.json();
-      const sessionId = session?.id;
+      const payload = await sessionRes.json();
+      if (!sessionRes.ok) {
+        throw new Error(payload?.error || "세션 생성 실패");
+      }
 
-      alert("AI가 퀴즈를 생성 중입니다...");
-      onStart({ lectureId, weekId, mode, sessionId });
+      // payload: { session_id, run_id }
+      if (!payload?.session_id || !payload?.run_id) {
+        throw new Error("세션 응답이 올바르지 않습니다.");
+      }
+
+      // 👉 상위에서 /quiz/from-url 호출 + 전체 화면 로딩/블러 처리
+      onStart({
+        lectureId,
+        weekId,
+        mode,
+        sessionId: payload.session_id,
+        runId: payload.run_id,
+      });
+    } catch (e: any) {
+      console.error(e);
+      alert(e?.message || "세션 생성 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);
     }
@@ -118,14 +145,14 @@ export default function QuizCard({ onStart }: Props) {
           disabled={!lectureId}
         >
           <option value="">주차를 선택하세요</option>
-          {weeks.map((w) => (
+          {weeks.map((w: any) => (
             <option key={w.id} value={w.id}>
               {w.week_number}주차 - {w.title}
             </option>
           ))}
         </select>
 
-        {/* ✅ 퀴즈 모드 선택 */}
+        {/* ✅ 모드 선택 */}
         <div className="grid grid-cols-4 gap-2">
           {(["multiple", "ox", "short", "mixed"] as const).map((m) => (
             <button
@@ -149,7 +176,7 @@ export default function QuizCard({ onStart }: Props) {
           ))}
         </div>
 
-        {/* ✅ 시작 버튼 */}
+        {/* ✅ 시작 버튼 (세션만 생성) */}
         <button
           disabled={loading}
           onClick={handleStart}
@@ -159,7 +186,7 @@ export default function QuizCard({ onStart }: Props) {
               : "bg-indigo-600 hover:bg-indigo-700"
           }`}
         >
-          {loading ? "퀴즈 생성 중..." : "퀴즈 시작하기"}
+          {loading ? "세션 생성 중..." : "퀴즈 시작하기"}
         </button>
       </div>
     </div>
