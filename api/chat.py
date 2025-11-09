@@ -1,11 +1,18 @@
+from fastapi import FastAPI
 from mangum import Mangum
 
-def handler(event, context):
-    return {
-        "statusCode": 200,
-        "headers": {"Content-Type": "application/json"},
-        "body": '{"message": "Chat API is working"}'
-    }
+app = FastAPI()
+
+@app.get("/")
+def read_root():
+    return {"message": "Chat API GET is working"}
+
+@app.post("/")
+def create_chat():
+    return {"message": "Chat API POST is working"}
+
+handler = Mangum(app, lifespan="off")
+
 
 
 # from fastapi import FastAPI, Request, HTTPException
