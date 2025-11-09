@@ -13,6 +13,7 @@ const nextConfig: NextConfig = {
     // ✅ Tailwind CSS 최적화 비활성화 (Vercel에서 스타일 깨짐 방지)
     optimizeCss: false,
   },
+  output: "standalone",
 };
 
 export default nextConfig;
