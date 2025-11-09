@@ -14,7 +14,6 @@ def create_chat():
 handler = Mangum(app, lifespan="off")
 
 
-
 # from fastapi import FastAPI, Request, HTTPException
 # from fastapi.middleware.cors import CORSMiddleware
 # from mangum import Mangum
