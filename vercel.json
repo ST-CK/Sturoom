@@ -3,7 +3,7 @@
   "buildCommand": "next build --no-lint",
   "functions": {
     "api/**/*.py": {
-      "runtime": "python3.9.13"
+      "runtime": "python@3.9"
     }
   }
 }
