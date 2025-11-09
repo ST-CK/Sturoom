@@ -115,8 +115,14 @@ handler = Mangum(app, lifespan="off")
 import sys
 import os
 
-# mcp 경로 추가
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'mcp'))
+# Vercel 환경에서 mcp 폴더 경로 추가
+current_dir = os.path.dirname(__file__)
+parent_dir = os.path.dirname(current_dir)
+mcp_dir = os.path.join(parent_dir, 'mcp')
+
+# mcp를 Python 경로에 추가
+if os.path.exists(mcp_dir):
+    sys.path.insert(0, mcp_dir)
 
 from main import app
 from mangum import Mangum
