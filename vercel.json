@@ -1,9 +1,3 @@
 {
-  "version": 2,
-  "buildCommand": "next build --no-lint",
-  "functions": {
-    "api/**/*.py": {
-      "runtime": "python@3.9"
-    }
-  }
+  "buildCommand": "next build --no-lint"
 }
