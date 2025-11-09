@@ -1,9 +1,6 @@
 {
   "version": 2,
   "buildCommand": "next build --no-lint",
-  "functions": {
-    "mcp/**/*.py": { "runtime": "python3.11" }
-  },
   "builds": [
     { "src": "mcp/main.py", "use": "@vercel/python" },
     { "src": "package.json", "use": "@vercel/next" }
