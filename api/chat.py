@@ -1,17 +1,36 @@
 from fastapi import FastAPI
 from mangum import Mangum
+import traceback
+import sys
 
 app = FastAPI()
 
 @app.get("/")
 def read_root():
-    return {"message": "Chat API GET is working"}
+    try:
+        return {
+            "message": "Chat API GET is working",
+            "python_version": sys.version,
+            "sys_path": sys.path[:3]
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }
 
 @app.post("/")
-def create_chat():
-    return {"message": "Chat API POST is working"}
+async def create_chat():
+    try:
+        return {"message": "Chat API POST is working"}
+    except Exception as e:
+        return {
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }
 
 handler = Mangum(app, lifespan="off")
+
 
 
 # from fastapi import FastAPI, Request, HTTPException
