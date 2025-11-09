@@ -1,13 +1,3 @@
 {
-  "buildCommand": "next build --no-lint",
-  "rewrites": [
-    {
-      "source": "/python/chat",
-      "destination": "/py-api/chat.py"
-    },
-    {
-      "source": "/python/quiz",
-      "destination": "/py-api/quiz.py"
-    }
-  ]
+  "buildCommand": "next build --no-lint"
 }
