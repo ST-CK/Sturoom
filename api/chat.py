@@ -1,35 +1,14 @@
-from fastapi import FastAPI
-from mangum import Mangum
-import traceback
-import sys
+def handler(event, context):
+    import json
+    return {
+        "statusCode": 200,
+        "headers": {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*"
+        },
+        "body": json.dumps({"message": "Hello from Python Lambda"})
+    }
 
-app = FastAPI()
-
-@app.get("/")
-def read_root():
-    try:
-        return {
-            "message": "Chat API GET is working",
-            "python_version": sys.version,
-            "sys_path": sys.path[:3]
-        }
-    except Exception as e:
-        return {
-            "error": str(e),
-            "traceback": traceback.format_exc()
-        }
-
-@app.post("/")
-async def create_chat():
-    try:
-        return {"message": "Chat API POST is working"}
-    except Exception as e:
-        return {
-            "error": str(e),
-            "traceback": traceback.format_exc()
-        }
-
-handler = Mangum(app, lifespan="off")
 
 
 
