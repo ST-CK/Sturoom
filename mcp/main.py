@@ -28,9 +28,12 @@ app.add_middleware(
 # 라우터 등록
 
 
-app.include_router(quiz.router, prefix="/quiz")
-app.include_router(chat.router, prefix="/chat")
+app.include_router(quiz.router, prefix="/quiz", tags=["quiz"])
+app.include_router(chat.router, prefix="/chat", tags=["chat"])
 
 @app.get("/")
 def root():
-    return {"status": "MCP Python Server running", "routes": ["/quiz", "/chat"]}
+    return {
+        "status": "MCP Python Server running", 
+        "routes": ["/quiz", "/chat"]
+    }
