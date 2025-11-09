@@ -1,9 +1,3 @@
 {
-  "buildCommand": "next build --no-lint",
-  "rewrites": [
-    {
-      "source": "/api/mcp/:path*",
-      "destination": "/mcp/index.py"
-    }
-  ]
+  "buildCommand": "next build --no-lint"
 }

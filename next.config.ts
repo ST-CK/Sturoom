@@ -10,7 +10,6 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizeCss: false,
   },
-  // 로컬 개발용 프록시
   async rewrites() {
     if (process.env.NODE_ENV === 'development') {
       return [

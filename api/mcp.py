@@ -6,7 +6,6 @@ import os
 
 app = FastAPI()
 
-# CORS 설정
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -23,10 +22,8 @@ app.add_middleware(
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, current_dir)
 
-# routes import
 from routes import chat, quiz
 
-# 라우터 등록
 app.include_router(chat.router, prefix="/chat", tags=["chat"])
 app.include_router(quiz.router, prefix="/quiz", tags=["quiz"])
 
@@ -37,5 +34,4 @@ def root():
         "routes": ["/chat", "/quiz"]
     }
 
-# Vercel 서버리스 핸들러
 handler = Mangum(app, lifespan="off")
