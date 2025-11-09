@@ -1,12 +1,9 @@
 {
-  "version": 2,
   "buildCommand": "next build --no-lint",
-  "builds": [
-    { "src": "mcp/main.py", "use": "@vercel/python" },
-    { "src": "package.json", "use": "@vercel/next" }
-  ],
-  "routes": [
-    { "src": "/api/mcp/(.*)", "dest": "mcp/main.py" },
-    { "src": "/(.*)", "dest": "$1" }
+  "rewrites": [
+    {
+      "source": "/api/mcp/:path*",
+      "destination": "/mcp/main.py"
+    }
   ]
 }
