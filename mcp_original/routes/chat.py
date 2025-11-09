@@ -1,16 +1,11 @@
 from fastapi import APIRouter, Request
 from openai import OpenAI
+from dotenv import load_dotenv
 import os
 
-try:
-    from dotenv import load_dotenv
-    load_dotenv()  # 로컬 개발용
-except ImportError:
-    pass  # Vercel 배포 시 dotenv 없어도 OK
-
+load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 router = APIRouter()
-
 
 @router.post("/")
 async def chat(req: Request):
