@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
@@ -110,3 +111,15 @@ def debug_endpoint():
 
 # Vercel 핸들러
 handler = Mangum(app, lifespan="off")
+=======
+import sys
+import os
+
+# mcp 폴더를 import 경로에 추가
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'mcp'))
+
+from main import app
+
+# Vercel이 인식하는 핸들러
+handler = app
+>>>>>>> 6421b70 (API 테스트)
