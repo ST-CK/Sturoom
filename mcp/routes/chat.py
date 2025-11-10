@@ -7,7 +7,7 @@ load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 router = APIRouter()
 
-@router.post("/")
+@router.post("/")  # ✅ prefix="/api/chat" 과 결합되어 /api/chat/ 이 최종 경로가 됨
 async def chat(req: Request):
     """
     학습/퀴즈/자료 기반 도우미 챗봇
@@ -27,7 +27,7 @@ async def chat(req: Request):
                     "너는 학습 도우미 챗봇이야. "
                     "사용자가 퀴즈 제작, 학습 요약, 질문 만들기 등을 물어보면 "
                     "핵심만 간결하게, 따뜻하게 대답해줘."
-                )
+                ),
             },
             {"role": "user", "content": user_message},
         ],
