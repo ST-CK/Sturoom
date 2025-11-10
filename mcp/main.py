@@ -34,3 +34,4 @@ app.include_router(chat.router, prefix="/chat")
 @app.get("/")
 def root():
     return {"status": "MCP Python Server running", "routes": ["/quiz", "/chat"]}
+
