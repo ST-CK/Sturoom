@@ -195,7 +195,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
 type QuizMode = "multiple" | "ox" | "short" | "mixed";
 
@@ -207,11 +206,10 @@ type Props = {
     sessionId: string;
     runId: string;
   }) => void;
+  supabase: any; // ✅ 상위에서 받은 Supabase 인스턴스
 };
 
-export default function QuizCard({ onStart }: Props) {
-  const supabase = createClientComponentClient();
-
+export default function QuizCard({ onStart, supabase }: Props) {
   const [lectures, setLectures] = useState<any[]>([]);
   const [weeks, setWeeks] = useState<any[]>([]);
   const [lectureId, setLectureId] = useState("");
@@ -219,7 +217,6 @@ export default function QuizCard({ onStart }: Props) {
   const [mode, setMode] = useState<QuizMode>("mixed");
   const [loading, setLoading] = useState(false);
 
-  // ✅ 백엔드 주소 (.env 설정)
   const BACKEND_URL =
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:5000";
 
@@ -231,13 +228,11 @@ export default function QuizCard({ onStart }: Props) {
         if (!res.ok) return;
         const data = await res.json();
         setLectures(data || []);
-      } catch {
-        // silently ignore
-      }
+      } catch {}
     })();
   }, []);
 
-  // ✅ 주차 목록 불러오기 (강의 선택 시)
+  // ✅ 주차 목록 불러오기
   useEffect(() => {
     if (!lectureId) {
       setWeeks([]);
@@ -250,13 +245,11 @@ export default function QuizCard({ onStart }: Props) {
         if (!res.ok) return;
         const data = await res.json();
         setWeeks(data || []);
-      } catch {
-        // silently ignore
-      }
+      } catch {}
     })();
   }, [lectureId]);
 
-  // ✅ 세션 생성 함수
+  // ✅ 세션 생성
   async function handleStart() {
     if (!lectureId || !weekId) {
       alert("강의와 주차를 먼저 선택하세요.");
@@ -265,41 +258,32 @@ export default function QuizCard({ onStart }: Props) {
 
     setLoading(true);
     try {
-      // ✅ getUser() → getSession() 으로 변경 (세션 안정성 향상)
       const {
         data: { session },
-        error: sessionError,
+        error,
       } = await supabase.auth.getSession();
 
-      if (sessionError || !session?.user) {
+      if (error || !session?.user) {
         alert("로그인이 필요합니다.");
         return;
       }
 
       const user = session.user;
 
-      // ✅ 세션 생성 API 요청
       const sessionRes = await fetch(`${BACKEND_URL}/quiz/session/start`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           user_id: user.id,
           room_id: lectureId,
-          post_id: weekId, // 백엔드가 post_id로 받도록 유지
+          post_id: weekId,
           mode,
         }),
       });
 
       const payload = await sessionRes.json();
-      if (!sessionRes.ok) {
-        throw new Error(payload?.error || "세션 생성 실패");
-      }
+      if (!sessionRes.ok) throw new Error(payload?.error || "세션 생성 실패");
 
-      if (!payload?.session_id || !payload?.run_id) {
-        throw new Error("세션 응답이 올바르지 않습니다.");
-      }
-
-      // ✅ 상위 QuizChat에 전달 → 실제 퀴즈 생성 진행
       onStart({
         lectureId,
         weekId,
@@ -322,7 +306,6 @@ export default function QuizCard({ onStart }: Props) {
       </h3>
 
       <div className="space-y-4">
-        {/* ✅ 강의 선택 */}
         <select
           className="w-full border border-slate-300 rounded-lg px-3 py-2"
           value={lectureId}
@@ -336,7 +319,6 @@ export default function QuizCard({ onStart }: Props) {
           ))}
         </select>
 
-        {/* ✅ 주차 선택 */}
         <select
           className="w-full border border-slate-300 rounded-lg px-3 py-2"
           value={weekId}
@@ -351,7 +333,6 @@ export default function QuizCard({ onStart }: Props) {
           ))}
         </select>
 
-        {/* ✅ 모드 선택 */}
         <div className="grid grid-cols-4 gap-2">
           {(["multiple", "ox", "short", "mixed"] as const).map((m) => (
             <button
@@ -375,7 +356,6 @@ export default function QuizCard({ onStart }: Props) {
           ))}
         </div>
 
-        {/* ✅ 시작 버튼 */}
         <button
           disabled={loading}
           onClick={handleStart}
