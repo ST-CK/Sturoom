@@ -1,7 +1,7 @@
-// "use client";
+"use client";
 
 import { useState, useEffect, useRef } from "react";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { supabase } from "@/lib/supabaseClient"; // ✅ 전역 클라이언트 사용
 import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels";
 import dynamic from "next/dynamic";
 import ChatSidebar from "./ChatSidebar";
@@ -15,7 +15,6 @@ type QuizType = "multiple" | "ox" | "short" | "mixed";
 type QuizItem = { id: string; question: string; choices?: string[] };
 
 export default function QuizChat() {
-  const supabase = createClientComponentClient();
   const [messages, setMessages] = useState<any[]>([]);
   const [composer, setComposer] = useState("");
   const [quizList, setQuizList] = useState<QuizItem[]>([]);
@@ -29,7 +28,7 @@ export default function QuizChat() {
   const BACKEND_URL =
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:5000";
 
-  // ✅ 메시지 초기화 (1회만)
+  // ✅ messages 초기화 1회만 수행
   useEffect(() => {
     if (messages.length === 0) {
       setMessages([{ id: 1, role: "ai", kind: "card" }]);
@@ -37,7 +36,7 @@ export default function QuizChat() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ✅ 퀴즈 제출
+  // ✅ 퀴즈 답변 전송
   async function send() {
     if (!composer.trim() || !sessionId || !quizList.length) return;
     const answer = composer.trim();
@@ -85,7 +84,7 @@ export default function QuizChat() {
     ]);
   }
 
-  // ✅ 퀴즈 시작
+  // ✅ 퀴즈 세션 생성
   async function handleStartQuiz({
     lectureId,
     weekId,
