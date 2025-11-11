@@ -261,23 +261,9 @@ import ChatMessage from "./ChatMessage";
 import QuizCard from "./QuizCard";
 import Composer from "./Composer";
 
-// ---------------- 타입 정의 ----------------
 type QuizType = "multiple" | "ox" | "short" | "mixed";
+type QuizItem = { id: string; question: string; choices?: string[] };
 
-type QuizItem = {
-  id: string;
-  question: string;
-  choices?: string[];
-};
-
-type QuizPayload = {
-  question?: string;
-  options?: string[];
-  quiz?: { question?: string; choices?: string[] }[];
-  text?: string;
-};
-
-// ---------------- 메인 컴포넌트 ----------------
 export default function QuizChat() {
   const supabase = createClientComponentClient();
   const [messages, setMessages] = useState<any[]>([]);
@@ -293,158 +279,23 @@ export default function QuizChat() {
   const BACKEND_URL =
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:5000";
 
-  // ---------- 초기 ----------
   useEffect(() => {
     setMessages([{ id: 1, role: "ai", kind: "card" }]);
   }, []);
 
-  // ---------- 스크롤 유지 ----------
-  useEffect(() => {
-    if (chatScrollRef.current && endRef.current) {
-      chatScrollRef.current.scrollTop = endRef.current.offsetTop;
-    }
-  }, [messages]);
-
-  // ---------- 과거 메시지 복원 ----------
-  useEffect(() => {
-    if (!sessionId) return;
-
-    async function loadOldMessages() {
-      const { data, error } = await supabase
-        .from("quiz_messages")
-        .select("id, role, kind, payload, created_at, order_index")
-        .eq("session_id", sessionId)
-        .order("order_index", { ascending: true });
-
-      if (error) {
-        console.error("❌ 과거 메시지 불러오기 실패:", error.message);
-        return;
-      }
-
-      const parsed = (data || []).map((m) => {
-        let content: QuizPayload = {};
-        try {
-          content =
-            typeof m.payload === "string"
-              ? (JSON.parse(m.payload) as QuizPayload)
-              : (m.payload as QuizPayload);
-        } catch {
-          content = { text: String(m.payload) };
-        }
-
-        if (m.kind === "quiz") {
-          return {
-            id: m.id,
-            role: m.role,
-            kind: m.kind,
-            question:
-              content.question ||
-              content.quiz?.[0]?.question ||
-              "문제 표시 오류",
-            options: content.options || content.quiz?.[0]?.choices || [],
-          };
-        }
-
-        if (m.kind === "text") {
-          return {
-            id: m.id,
-            role: m.role,
-            kind: m.kind,
-            text: content.text || "",
-          };
-        }
-
-        if (m.kind === "card") {
-          return { id: m.id, role: m.role, kind: "card" };
-        }
-
-        return null;
-      });
-
-      setMessages([{ id: "init", role: "ai", kind: "card" }, ...(parsed || [])]);
-    }
-
-    loadOldMessages();
-
-    // ---------- 실시간 메시지 반영 ----------
-    const channel = supabase
-      .channel(`quiz_messages_${sessionId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "quiz_messages",
-          filter: `session_id=eq.${sessionId}`,
-        },
-        (payload) => {
-          const m = payload.new;
-          let content: QuizPayload = {};
-          try {
-            content =
-              typeof m.payload === "string"
-                ? (JSON.parse(m.payload) as QuizPayload)
-                : (m.payload as QuizPayload);
-          } catch {
-            content = { text: String(m.payload) };
-          }
-
-          if (m.kind === "quiz") {
-            setMessages((prev) => [
-              ...prev,
-              {
-                id: m.id,
-                role: m.role,
-                kind: m.kind,
-                question:
-                  content.question ||
-                  content.quiz?.[0]?.question ||
-                  "문제 표시 오류",
-                options: content.options || content.quiz?.[0]?.choices || [],
-              },
-            ]);
-          } else if (m.kind === "text") {
-            setMessages((prev) => [
-              ...prev,
-              {
-                id: m.id,
-                role: m.role,
-                kind: m.kind,
-                text: content.text || "",
-              },
-            ]);
-          } else if (m.kind === "card") {
-            setMessages((prev) => [
-              ...prev,
-              { id: m.id, role: m.role, kind: "card" },
-            ]);
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [sessionId]);
-
-  // ---------- 메시지 전송 (채점) ----------
   async function send() {
     if (!composer.trim() || !sessionId || !quizList.length) return;
     const answer = composer.trim();
     const currentQ = quizList[currentIndex];
-
     setComposer("");
     setMessages((prev) => [
       ...prev,
       { id: prev.length + 1, role: "user", kind: "text", text: answer },
     ]);
 
-    // ✅ 토큰 기반 인증
     const {
       data: { session },
     } = await supabase.auth.getSession();
-
     const token = session?.access_token;
     if (!token) {
       alert("로그인이 필요합니다.");
@@ -455,7 +306,7 @@ export default function QuizChat() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`, // ✅ 헤더 추가
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
         session_id: sessionId,
@@ -466,7 +317,6 @@ export default function QuizChat() {
     });
 
     const result = await res.json();
-
     setMessages((prev) => [
       ...prev,
       {
@@ -478,44 +328,8 @@ export default function QuizChat() {
           : `❌ 오답입니다. 정답은 ${result?.correct_answer ?? "?"}`,
       },
     ]);
-
-    // 다음 문제
-    if (currentIndex + 1 < quizList.length) {
-      const nextQ = quizList[currentIndex + 1];
-      setTimeout(() => {
-        setCurrentIndex(currentIndex + 1);
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: prev.length + 3,
-            role: "ai",
-            kind: "quiz",
-            question: nextQ.question,
-            options: nextQ.choices ?? [],
-          },
-        ]);
-      }, 800);
-    } else {
-      setTimeout(() => {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: prev.length + 3,
-            role: "ai",
-            kind: "text",
-            text: "🎉 퀴즈가 모두 완료되었습니다!",
-          },
-          { id: prev.length + 4, role: "ai", kind: "card" },
-        ]);
-        setSessionId("");
-        setRunId("");
-        setQuizList([]);
-        setCurrentIndex(0);
-      }, 800);
-    }
   }
 
-  // ---------- 퀴즈 시작 ----------
   async function handleStartQuiz({
     lectureId,
     weekId,
@@ -531,12 +345,10 @@ export default function QuizChat() {
   }) {
     setLoading(true);
     try {
-      // ✅ 토큰 인증
       const {
         data: { session },
       } = await supabase.auth.getSession();
       const token = session?.access_token;
-
       if (!token) {
         alert("로그인이 필요합니다.");
         return;
@@ -545,15 +357,13 @@ export default function QuizChat() {
       const postRes = await fetch(
         `/api/library/classrooms/${lectureId}/weeks/${weekId}/posts/${weekId}`
       );
-      if (!postRes.ok) throw new Error("자료 불러오기 실패");
       const postData = await postRes.json();
 
-      // ✅ 토큰 포함해서 호출
-      const res = await fetch("/api/quiz/from-url", {
-        method: "PUT",
+      const res = await fetch(`${BACKEND_URL}/quiz/from-url`, {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // ✅ 헤더 추가
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           session_id: sId,
@@ -566,10 +376,8 @@ export default function QuizChat() {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || "퀴즈 생성 실패");
-
-      // ✅ 첫 문제 세팅
       const list = data?.quiz ?? [];
+
       if (list.length > 0) {
         setSessionId(sId);
         setRunId(rId);
@@ -592,27 +400,17 @@ export default function QuizChat() {
             id: prev.length + 1,
             role: "ai",
             kind: "text",
-            text: "⚠️ 생성된 문항이 없습니다. 파일 내용을 확인하세요.",
+            text: "⚠️ 생성된 문항이 없습니다.",
           },
         ]);
       }
     } catch (err: any) {
       console.error(err);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: prev.length + 1,
-          role: "ai",
-          kind: "text",
-          text: "⚠️ 퀴즈 생성 중 오류가 발생했습니다.",
-        },
-      ]);
     } finally {
       setLoading(false);
     }
   }
 
-  // ---------- UI ----------
   return (
     <div className="h-full flex flex-col overflow-hidden relative">
       {loading && (
@@ -621,7 +419,6 @@ export default function QuizChat() {
           <p className="mt-4 text-slate-700 font-semibold">
             AI가 퀴즈를 생성 중입니다...
           </p>
-          <p className="text-sm text-slate-500 mt-1">잠시만 기다려 주세요 🤖</p>
         </div>
       )}
 
