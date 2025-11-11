@@ -24,7 +24,6 @@ type Props = {
 export default function ChatSidebar({ onSelect }: Props) {
   const [sessions, setSessions] = useState<Session[]>([]);
 
-  // ✅ 영어 mode → 한글 변환
   const modeMap: Record<string, string> = {
     multiple: "선다형",
     short: "서술형",
@@ -32,10 +31,10 @@ export default function ChatSidebar({ onSelect }: Props) {
     mixed: "혼합",
   };
 
-  // 🔹 세션 불러오기
+  // ✅ 세션 목록 불러오기
   async function loadSessions() {
     const { data, error } = await supabase
-      .from("quiz_sessions_view") // ✅ View에서 직접 불러옴
+      .from("quiz_sessions_view")
       .select("*")
       .order("created_at", { ascending: false });
 
@@ -44,19 +43,15 @@ export default function ChatSidebar({ onSelect }: Props) {
       return;
     }
 
-    console.log("📘 세션 로드 결과:", data);
-    const filtered = (data || []).filter(
-      (s: Session) => (s.quiz_count ?? 0) > 0
-    );
+    const filtered = (data || []).filter((s: Session) => (s.quiz_count ?? 0) > 0);
     setSessions(filtered as Session[]);
   }
 
-  // 🔹 초기 로드
   useEffect(() => {
     loadSessions();
   }, []);
 
-  // 🔹 실시간 반영
+  // ✅ 실시간 반영
   useEffect(() => {
     const channel = supabase
       .channel("realtime_quiz_sessions")
@@ -75,7 +70,6 @@ export default function ChatSidebar({ onSelect }: Props) {
     };
   }, []);
 
-  // 🔹 UI 렌더링
   return (
     <div className="h-full flex flex-col bg-white border-r border-slate-200">
       <div className="h-12 flex items-center px-4 border-b border-slate-200 bg-slate-50/80 backdrop-blur-md">
@@ -91,19 +85,10 @@ export default function ChatSidebar({ onSelect }: Props) {
           <ul className="divide-y divide-slate-100">
             {sessions.map((s) => {
               const lectureTitle = s.lecture_title || "강의실 없음";
-              const weekLabel = s.week_number
-                ? `${s.week_number}주차`
-                : "주차 정보 없음";
-              const modeLabel =
-                modeMap[s.mode ?? ""] ?? s.mode?.toUpperCase() ?? "MODE";
-
+              const weekLabel = s.week_number ? `${s.week_number}주차` : "주차 정보 없음";
+              const modeLabel = modeMap[s.mode ?? ""] ?? s.mode?.toUpperCase() ?? "MODE";
               const title = `${lectureTitle} · ${weekLabel} · ${modeLabel}`;
-
-              const time = format(
-                new Date(s.created_at),
-                "M월 d일 a h:mm",
-                { locale: ko }
-              );
+              const time = format(new Date(s.created_at), "M월 d일 a h:mm", { locale: ko });
 
               return (
                 <li
@@ -111,9 +96,7 @@ export default function ChatSidebar({ onSelect }: Props) {
                   onClick={() => onSelect?.(s.id)}
                   className="px-4 py-3 hover:bg-indigo-50 transition cursor-pointer"
                 >
-                  <div className="text-indigo-600 font-medium truncate">
-                    {title}
-                  </div>
+                  <div className="text-indigo-600 font-medium truncate">{title}</div>
                   <div className="text-xs text-slate-500 mt-0.5">{time}</div>
                 </li>
               );

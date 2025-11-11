@@ -8,15 +8,8 @@ import ChatMessage from "./ChatMessage";
 import QuizCard from "./QuizCard";
 import Composer from "./Composer";
 
-// ---------------- 타입 정의 ----------------
 type QuizType = "multiple" | "ox" | "short" | "mixed";
-
-type QuizItem = {
-  id: string;
-  question: string;
-  choices?: string[];
-};
-
+type QuizItem = { id: string; question: string; choices?: string[] };
 type QuizPayload = {
   question?: string;
   options?: string[];
@@ -24,7 +17,6 @@ type QuizPayload = {
   text?: string;
 };
 
-// ---------------- 메인 컴포넌트 ----------------
 export default function QuizChat() {
   const [messages, setMessages] = useState<any[]>([]);
   const [composer, setComposer] = useState("");
@@ -39,19 +31,17 @@ export default function QuizChat() {
   const BACKEND_URL =
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:5000";
 
-  // ---------- 초기 ----------
   useEffect(() => {
     setMessages([{ id: 1, role: "ai", kind: "card" }]);
   }, []);
 
-  // ---------- 스크롤 유지 ----------
   useEffect(() => {
     if (chatScrollRef.current && endRef.current) {
       chatScrollRef.current.scrollTop = endRef.current.offsetTop;
     }
   }, [messages]);
 
-  // ---------- 과거 메시지 복원 ----------
+  // ✅ 과거 메시지 로드 + 실시간 구독
   useEffect(() => {
     if (!sessionId) return;
 
@@ -112,7 +102,6 @@ export default function QuizChat() {
 
     loadOldMessages();
 
-    // ---------- 실시간 메시지 반영 ----------
     const channel = supabase
       .channel(`quiz_messages_${sessionId}`)
       .on(
@@ -152,12 +141,7 @@ export default function QuizChat() {
           } else if (m.kind === "text") {
             setMessages((prev) => [
               ...prev,
-              {
-                id: m.id,
-                role: m.role,
-                kind: m.kind,
-                text: content.text || "",
-              },
+              { id: m.id, role: m.role, kind: m.kind, text: content.text || "" },
             ]);
           } else if (m.kind === "card") {
             setMessages((prev) => [
@@ -174,7 +158,7 @@ export default function QuizChat() {
     };
   }, [sessionId]);
 
-  // ---------- 메시지 전송 (채점) ----------
+  // ✅ 정답 전송/채점
   async function send() {
     if (!composer.trim() || !sessionId || !quizList.length) return;
     const answer = composer.trim();
@@ -193,6 +177,7 @@ export default function QuizChat() {
     const res = await fetch(`${BACKEND_URL}/quiz/attempt`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify({
         session_id: sessionId,
         run_id: runId,
@@ -216,7 +201,6 @@ export default function QuizChat() {
       },
     ]);
 
-    // 다음 문제
     if (currentIndex + 1 < quizList.length) {
       const nextQ = quizList[currentIndex + 1];
       setTimeout(() => {
@@ -252,7 +236,7 @@ export default function QuizChat() {
     }
   }
 
-  // ---------- 퀴즈 시작 ----------
+  // ✅ 퀴즈 시작
   async function handleStartQuiz({
     lectureId,
     weekId,
@@ -281,6 +265,7 @@ export default function QuizChat() {
       const res = await fetch(`${BACKEND_URL}/quiz/from-url`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           session_id: sId,
           run_id: rId,
@@ -295,17 +280,6 @@ export default function QuizChat() {
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || "퀴즈 생성 실패");
 
-      // ✅ custom_title 업데이트
-      await supabase
-        .from("quiz_sessions")
-        .update({
-          custom_title: `${postData?.lecture_title ?? "강의"} · ${
-            postData?.week ?? "?"
-          }주차 · ${mode.toUpperCase()}`,
-        })
-        .eq("id", sId);
-
-      // ✅ 첫 문제 출력
       const list = data?.quiz ?? [];
       if (list.length > 0) {
         setSessionId(sId);
@@ -349,7 +323,6 @@ export default function QuizChat() {
     }
   }
 
-  // ---------- UI ----------
   return (
     <div className="h-full flex flex-col overflow-hidden relative">
       {loading && (
@@ -379,17 +352,16 @@ export default function QuizChat() {
               ref={chatScrollRef}
               className="flex-1 overflow-y-auto px-6 py-6 space-y-4"
             >
-              {messages.map((m) => {
+              {messages.map((m, i) => {
                 if (m.kind === "card")
                   return (
-                    <ChatMessage key={m.id} role="ai">
+                    <ChatMessage key={i} role="ai">
                       <QuizCard onStart={handleStartQuiz} />
                     </ChatMessage>
                   );
-
                 if (m.kind === "quiz")
                   return (
-                    <ChatMessage key={m.id} role="ai">
+                    <ChatMessage key={i} role="ai">
                       <div>
                         <p className="font-medium">{m.question}</p>
                         {!!m.options?.length && (
@@ -404,15 +376,12 @@ export default function QuizChat() {
                       </div>
                     </ChatMessage>
                   );
-
                 if (m.kind === "text")
                   return (
-                    <ChatMessage key={m.id} role={m.role}>
+                    <ChatMessage key={i} role={m.role}>
                       {m.text}
                     </ChatMessage>
                   );
-
-                return null;
               })}
               <div ref={endRef} />
             </div>
