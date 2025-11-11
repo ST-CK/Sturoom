@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { supabase } from "@/lib/supabaseClient";
 
 type QuizMode = "multiple" | "ox" | "short" | "mixed";
 
@@ -11,12 +11,11 @@ type Props = {
     weekId: string;
     mode: QuizMode;
     sessionId: string;
+    runId: string;
   }) => void;
 };
 
 export default function QuizCard({ onStart }: Props) {
-  const supabase = createClientComponentClient();
-
   const [lectures, setLectures] = useState<any[]>([]);
   const [weeks, setWeeks] = useState<any[]>([]);
   const [lectureId, setLectureId] = useState("");
@@ -27,63 +26,60 @@ export default function QuizCard({ onStart }: Props) {
   const BACKEND_URL =
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:5000";
 
-  // ✅ 강의 목록 불러오기
   useEffect(() => {
     (async () => {
       const res = await fetch("/api/library/classrooms");
-      if (!res.ok) return;
-      const data = await res.json();
-      setLectures(data);
+      if (res.ok) setLectures(await res.json());
     })();
   }, []);
 
-  // ✅ 주차 목록 불러오기
   useEffect(() => {
-    if (!lectureId) {
-      setWeeks([]);
-      return;
-    }
+    if (!lectureId) return setWeeks([]);
     (async () => {
       const res = await fetch(`/api/library/classrooms/${lectureId}/weeks`);
-      if (!res.ok) return;
-      const data = await res.json();
-      setWeeks(data);
+      if (res.ok) setWeeks(await res.json());
     })();
   }, [lectureId]);
 
-  // ✅ 퀴즈 시작
   async function handleStart() {
-    if (!lectureId || !weekId) return;
+    if (!lectureId || !weekId) return alert("강의와 주차를 선택하세요.");
     setLoading(true);
-
     try {
       const {
         data: { user },
       } = await supabase.auth.getUser();
 
-      if (!user) {
-        alert("로그인이 필요합니다.");
-        return;
-      }
+      if (!user) throw new Error("로그인이 필요합니다.");
 
-      const userId = user.id;
+      const { data: session } = await supabase.auth.getSession();
+      const token = session?.session?.access_token;
 
-      const sessionRes = await fetch(`${BACKEND_URL}/quiz/session/start`, {
+      const res = await fetch(`${BACKEND_URL}/quiz/session/start`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
-          user_id: userId,
+          user_id: user.id,
           room_id: lectureId,
-          post_id: weekId, // ✅ 주차 단위로 세션 생성
+          post_id: weekId,
           mode,
         }),
       });
 
-      const session = await sessionRes.json();
-      const sessionId = session?.id;
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "세션 생성 실패");
 
-      alert("AI가 퀴즈를 생성 중입니다...");
-      onStart({ lectureId, weekId, mode, sessionId });
+      onStart({
+        lectureId,
+        weekId,
+        mode,
+        sessionId: data.session_id,
+        runId: data.run_id,
+      });
+    } catch (e: any) {
+      alert(e.message);
     } finally {
       setLoading(false);
     }
@@ -96,9 +92,8 @@ export default function QuizCard({ onStart }: Props) {
       </h3>
 
       <div className="space-y-4">
-        {/* ✅ 강의 선택 */}
         <select
-          className="w-full border border-slate-300 rounded-lg px-3 py-2"
+          className="w-full border rounded-lg px-3 py-2"
           value={lectureId}
           onChange={(e) => setLectureId(e.target.value)}
         >
@@ -110,9 +105,8 @@ export default function QuizCard({ onStart }: Props) {
           ))}
         </select>
 
-        {/* ✅ 주차 선택 */}
         <select
-          className="w-full border border-slate-300 rounded-lg px-3 py-2"
+          className="w-full border rounded-lg px-3 py-2"
           value={weekId}
           onChange={(e) => setWeekId(e.target.value)}
           disabled={!lectureId}
@@ -125,7 +119,6 @@ export default function QuizCard({ onStart }: Props) {
           ))}
         </select>
 
-        {/* ✅ 퀴즈 모드 선택 */}
         <div className="grid grid-cols-4 gap-2">
           {(["multiple", "ox", "short", "mixed"] as const).map((m) => (
             <button
@@ -149,7 +142,6 @@ export default function QuizCard({ onStart }: Props) {
           ))}
         </div>
 
-        {/* ✅ 시작 버튼 */}
         <button
           disabled={loading}
           onClick={handleStart}
@@ -159,7 +151,7 @@ export default function QuizCard({ onStart }: Props) {
               : "bg-indigo-600 hover:bg-indigo-700"
           }`}
         >
-          {loading ? "퀴즈 생성 중..." : "퀴즈 시작하기"}
+          {loading ? "세션 생성 중..." : "퀴즈 시작하기"}
         </button>
       </div>
     </div>
