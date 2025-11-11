@@ -81,9 +81,12 @@ def _build_prompt(all_text: str, mode: str) -> str:
 
 # ---------------- Supabase 토큰 검증 함수 (핵심 수정) ----------------
 def verify_supabase_token(token: str):
-    """사용자 토큰을 Supabase REST API로 직접 검증"""
+    """사용자 토큰을 Supabase REST API로 직접 검증 (apikey 헤더 추가)"""
     url = f"{SUPABASE_URL}/auth/v1/user"
-    headers = {"Authorization": f"Bearer {token}"}
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "apikey": SUPABASE_ANON_KEY,
+    }
     res = requests.get(url, headers=headers)
 
     if res.status_code != 200:
