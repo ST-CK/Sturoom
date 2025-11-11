@@ -201,8 +201,8 @@
 // }
 "use client";
 
-import { useState, useEffect } from "react";
-import { useSupabase } from "@/app/providers/SupabaseProvider";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabaseClient"; // ✅ 전역 클라이언트 사용
 
 type QuizMode = "multiple" | "ox" | "short" | "mixed";
 
@@ -217,8 +217,6 @@ type Props = {
 };
 
 export default function QuizCard({ onStart }: Props) {
-  const { supabase, session } = useSupabase(); // ✅ 전역 세션 사용
-
   const [lectures, setLectures] = useState<any[]>([]);
   const [weeks, setWeeks] = useState<any[]>([]);
   const [lectureId, setLectureId] = useState("");
@@ -226,7 +224,7 @@ export default function QuizCard({ onStart }: Props) {
   const [mode, setMode] = useState<QuizMode>("mixed");
   const [loading, setLoading] = useState(false);
 
-  // ✅ 백엔드 URL (환경변수)
+  // 🔒 절대 키 이름 바꾸지 않음 (.env.local 그대로 사용)
   const BACKEND_URL =
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:5000";
 
@@ -244,14 +242,13 @@ export default function QuizCard({ onStart }: Props) {
     })();
   }, []);
 
-  // ✅ 주차 목록 불러오기 (강의 선택 시)
+  // ✅ 주차 목록 불러오기
   useEffect(() => {
     if (!lectureId) {
       setWeeks([]);
       setWeekId("");
       return;
     }
-
     (async () => {
       try {
         const res = await fetch(`/api/library/classrooms/${lectureId}/weeks`);
@@ -264,34 +261,27 @@ export default function QuizCard({ onStart }: Props) {
     })();
   }, [lectureId]);
 
-  // ✅ 세션 기반 퀴즈 세션 생성
+  // ✅ 세션만 생성
   async function handleStart() {
     if (!lectureId || !weekId) {
       alert("강의와 주차를 먼저 선택하세요.");
       return;
     }
-
-    if (!session) {
-      alert("로그인이 필요합니다. (세션이 없습니다)");
-      return;
-    }
-
     setLoading(true);
     try {
-      const token = session.access_token;
-      const user = session.user;
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-      console.log("🧩 현재 로그인된 사용자:", user?.email);
-      console.log("🌐 BACKEND_URL:", BACKEND_URL);
+      if (!user?.id) {
+        alert("로그인이 필요합니다.");
+        return;
+      }
 
-      // ✅ 세션 생성 API 호출
       const sessionRes = await fetch(`${BACKEND_URL}/quiz/session/start`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // ✅ 토큰 전달
-        },
-        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include", // ✅ 쿠키 포함 (중요!)
         body: JSON.stringify({
           user_id: user.id,
           room_id: lectureId,
@@ -301,13 +291,14 @@ export default function QuizCard({ onStart }: Props) {
       });
 
       const payload = await sessionRes.json();
-      if (!sessionRes.ok) throw new Error(payload?.error || "세션 생성 실패");
+      if (!sessionRes.ok) {
+        throw new Error(payload?.error || "세션 생성 실패");
+      }
 
       if (!payload?.session_id || !payload?.run_id) {
         throw new Error("세션 응답이 올바르지 않습니다.");
       }
 
-      // ✅ 상위로 전달 (QuizChat)
       onStart({
         lectureId,
         weekId,
@@ -316,14 +307,13 @@ export default function QuizCard({ onStart }: Props) {
         runId: payload.run_id,
       });
     } catch (e: any) {
-      console.error("❌ handleStart 오류:", e);
+      console.error(e);
       alert(e?.message || "세션 생성 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);
     }
   }
 
-  // ✅ UI 렌더링
   return (
     <div className="mx-auto w-[380px] bg-white/90 backdrop-blur-md rounded-2xl shadow-lg p-6 border border-slate-200/60">
       <h3 className="text-xl font-semibold text-center mb-4 text-slate-800">
@@ -331,7 +321,7 @@ export default function QuizCard({ onStart }: Props) {
       </h3>
 
       <div className="space-y-4">
-        {/* 🔹 강의 선택 */}
+        {/* ✅ 강의 선택 */}
         <select
           className="w-full border border-slate-300 rounded-lg px-3 py-2"
           value={lectureId}
@@ -345,7 +335,7 @@ export default function QuizCard({ onStart }: Props) {
           ))}
         </select>
 
-        {/* 🔹 주차 선택 */}
+        {/* ✅ 주차 선택 */}
         <select
           className="w-full border border-slate-300 rounded-lg px-3 py-2"
           value={weekId}
@@ -360,7 +350,7 @@ export default function QuizCard({ onStart }: Props) {
           ))}
         </select>
 
-        {/* 🔹 모드 선택 */}
+        {/* ✅ 모드 선택 */}
         <div className="grid grid-cols-4 gap-2">
           {(["multiple", "ox", "short", "mixed"] as const).map((m) => (
             <button
@@ -384,7 +374,7 @@ export default function QuizCard({ onStart }: Props) {
           ))}
         </div>
 
-        {/* 🔹 시작 버튼 */}
+        {/* ✅ 시작 버튼 */}
         <button
           disabled={loading}
           onClick={handleStart}
