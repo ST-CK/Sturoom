@@ -1,136 +1,35 @@
 "use client";
+import { useState } from "react";
+import { PlusCircle } from "lucide-react";
 
-import { useEffect, useState } from "react";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import { format } from "date-fns";
-import { ko } from "date-fns/locale";
+export default function ChatSidebar() {
+  const [sessions] = useState([
+    { id: 1, title: "3주차 회귀분석 퀴즈" },
+    { id: 2, title: "4주차 다중회귀 퀴즈" },
+  ]);
 
-type Session = {
-  id: string;
-  lecture_id: string | null;
-  week_id: string | null;
-  mode: string | null;
-  quiz_count: number | null;
-  created_at: string;
-  lecture_title?: string | null;
-  week_number?: number | null;
-  post_title?: string | null;
-};
-
-type Props = {
-  onSelect?: (sessionId: string) => void;
-};
-
-export default function ChatSidebar({ onSelect }: Props) {
-  const supabase = createClientComponentClient();
-  const [sessions, setSessions] = useState<Session[]>([]);
-
-  // ✅ 영어 mode → 한글 변환
-  const modeMap: Record<string, string> = {
-    multiple: "선다형",
-    short: "서술형",
-    ox: "OX",
-    mixed: "혼합",
-  };
-
-  // 🔹 세션 불러오기
-  async function loadSessions() {
-    const { data, error } = await supabase
-      .from("quiz_sessions_view") // ✅ View에서 직접 불러옴
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.error("❌ 세션 불러오기 실패:", error.message);
-      return;
-    }
-
-    console.log("📘 세션 로드 결과:", data);
-    const filtered = (data || []).filter(
-      (s: Session) => (s.quiz_count ?? 0) > 0
-    );
-    setSessions(filtered as Session[]);
-  }
-
-  // 🔹 초기 로드
-  useEffect(() => {
-    loadSessions();
-  }, []);
-
-  // 🔹 실시간 반영
-  useEffect(() => {
-    const channel = supabase
-      .channel("realtime_quiz_sessions")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "quiz_sessions" },
-        (payload) => {
-          console.log("♻️ 세션 변경 감지:", payload.new);
-          loadSessions();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  // 🔹 UI 렌더링
   return (
-    <div className="h-full flex flex-col bg-white border-r border-slate-200">
-      <div className="h-12 flex items-center px-4 border-b border-slate-200 bg-slate-50/80 backdrop-blur-md">
-        <h2 className="font-semibold text-slate-700">AI 퀴즈 기록</h2>
+    <aside className="flex flex-col h-full bg-gradient-to-b from-indigo-50 to-white/80 border-r border-indigo-100/50 backdrop-blur-lg">
+      <div className="px-4 py-3 border-b border-indigo-100/50">
+        <h2 className="font-semibold text-indigo-700">AI 퀴즈 기록</h2>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
-        {sessions.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-slate-400 text-sm">
-            저장된 세션이 없습니다.
-          </div>
-        ) : (
-          <ul className="divide-y divide-slate-100">
-            {sessions.map((s) => {
-              const lectureTitle = s.lecture_title || "강의실 없음";
-              const weekLabel = s.week_number
-                ? `${s.week_number}주차`
-                : "주차 정보 없음";
-              const modeLabel =
-                modeMap[s.mode ?? ""] ?? s.mode?.toUpperCase() ?? "MODE";
-
-              const title = `${lectureTitle} · ${weekLabel} · ${modeLabel}`;
-
-              const time = format(
-                new Date(s.created_at),
-                "M월 d일 a h:mm",
-                { locale: ko }
-              );
-
-              return (
-                <li
-                  key={s.id}
-                  onClick={() => onSelect?.(s.id)}
-                  className="px-4 py-3 hover:bg-indigo-50 transition cursor-pointer"
-                >
-                  <div className="text-indigo-600 font-medium truncate">
-                    {title}
-                  </div>
-                  <div className="text-xs text-slate-500 mt-0.5">{time}</div>
-                </li>
-              );
-            })}
-          </ul>
-        )}
+      <div className="flex-1 overflow-y-auto px-3 py-2 space-y-1">
+        {sessions.map((s) => (
+          <button
+            key={s.id}
+            className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-indigo-100/40 transition"
+          >
+            {s.title}
+          </button>
+        ))}
       </div>
 
-      <div className="p-3 border-t border-slate-200">
-        <button
-          onClick={() => window.location.reload()}
-          className="w-full rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm py-2 font-medium transition"
-        >
-          + 새 퀴즈 시작
+      <div className="p-3 border-t border-indigo-100/50">
+        <button className="w-full flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-indigo-500 to-sky-500 text-white py-2 text-sm font-semibold hover:opacity-90 transition">
+          <PlusCircle className="h-4 w-4" /> 새 퀴즈 시작
         </button>
       </div>
-    </div>
+    </aside>
   );
 }
