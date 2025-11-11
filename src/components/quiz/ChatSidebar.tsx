@@ -70,6 +70,78 @@ export default function ChatSidebar({ onSelect }: Props) {
     };
   }, []);
 
+type Session = {
+  id: string;
+  lecture_id: string | null;
+  week_id: string | null;
+  mode: string | null;
+  quiz_count: number | null;
+  created_at: string;
+  lecture_title?: string | null;
+  week_number?: number | null;
+  post_title?: string | null;
+};
+
+type Props = {
+  onSelect?: (sessionId: string) => void;
+};
+
+export default function ChatSidebar({ onSelect }: Props) {
+  const supabase = createClientComponentClient();
+  const [sessions, setSessions] = useState<Session[]>([]);
+
+  // ✅ 영어 mode → 한글 변환
+  const modeMap: Record<string, string> = {
+    multiple: "선다형",
+    short: "서술형",
+    ox: "OX",
+    mixed: "혼합",
+  };
+
+  // 🔹 세션 불러오기
+  async function loadSessions() {
+    const { data, error } = await supabase
+      .from("quiz_sessions_view") // ✅ View에서 직접 불러옴
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("❌ 세션 불러오기 실패:", error.message);
+      return;
+    }
+
+    console.log("📘 세션 로드 결과:", data);
+    const filtered = (data || []).filter(
+      (s: Session) => (s.quiz_count ?? 0) > 0
+    );
+    setSessions(filtered as Session[]);
+  }
+
+  // 🔹 초기 로드
+  useEffect(() => {
+    loadSessions();
+  }, []);
+
+  // 🔹 실시간 반영
+  useEffect(() => {
+    const channel = supabase
+      .channel("realtime_quiz_sessions")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "quiz_sessions" },
+        (payload) => {
+          console.log("♻️ 세션 변경 감지:", payload.new);
+          loadSessions();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  // 🔹 UI 렌더링
   return (
     <div className="h-full flex flex-col bg-white border-r border-slate-200">
       <div className="h-12 flex items-center px-4 border-b border-slate-200 bg-slate-50/80 backdrop-blur-md">

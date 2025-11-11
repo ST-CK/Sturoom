@@ -236,7 +236,6 @@ export default function QuizChat() {
     }
   }
 
-  // ✅ 퀴즈 시작
   async function handleStartQuiz({
     lectureId,
     weekId,
@@ -309,15 +308,6 @@ export default function QuizChat() {
       }
     } catch (err: any) {
       console.error(err);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: prev.length + 1,
-          role: "ai",
-          kind: "text",
-          text: "⚠️ 퀴즈 생성 중 오류가 발생했습니다.",
-        },
-      ]);
     } finally {
       setLoading(false);
     }

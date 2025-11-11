@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Header, HTTPException
 from fastapi.responses import JSONResponse
-import os, json, httpx
+import os, json, httpx, requests
 from io import BytesIO
 from datetime import datetime, timedelta, timezone
 from typing import Tuple
@@ -79,20 +79,46 @@ def _build_prompt(all_text: str, mode: str) -> str:
 """
 
 
+# ---------------- Supabase 토큰 검증 함수 (핵심 수정) ----------------
+def verify_supabase_token(token: str):
+    """사용자 토큰을 Supabase REST API로 직접 검증"""
+    url = f"{SUPABASE_URL}/auth/v1/user"
+    headers = {"Authorization": f"Bearer {token}"}
+    res = requests.get(url, headers=headers)
+
+    if res.status_code != 200:
+        raise HTTPException(status_code=401, detail="Supabase 인증 실패")
+
+    return res.json()
+
+
 # ---------------- 세션 & 실행(run) 생성 ----------------
 @router.post("/session/start")
-async def start_quiz_session(req: Request):
+async def start_quiz_session(req: Request, authorization: str = Header(None)):
+    """
+    ✅ Safari/Vercel 호환 버전 — Authorization 헤더 기반 Supabase 인증 포함
+    """
     data = await req.json()
-    user_id = data.get("user_id")
     room_id = data.get("room_id")
     week_id = data.get("post_id")
     mode = data.get("mode", "mixed")
 
-    if not user_id:
-        return JSONResponse(status_code=400, content={"error": "user_id가 필요합니다."})
+    # 1️⃣ Authorization 헤더 확인
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="인증 토큰이 없습니다.")
+    token = authorization.split(" ")[1]
 
+    # 2️⃣ Supabase REST API로 토큰 검증 (수정된 부분)
     try:
-        # ✅ 기존 세션 존재 확인
+        user_data = verify_supabase_token(token)
+        user_id = user_data["id"]
+        print(f"🧩 인증된 사용자: {user_id}")
+    except Exception as e:
+        print("❌ Supabase 인증 실패:", e)
+        raise HTTPException(status_code=401, detail="Supabase 인증 실패")
+
+    # 3️⃣ 세션 / 런 생성
+    try:
         existing = (
             supabase.table("quiz_sessions")
             .select("id")
@@ -107,7 +133,6 @@ async def start_quiz_session(req: Request):
             session_id = existing.data[0]["id"]
             print(f"♻️ 기존 세션 재사용: {session_id}")
         else:
-            # ✅ 새 세션 생성
             session = {
                 "user_id": user_id,
                 "lecture_id": room_id,
@@ -120,7 +145,6 @@ async def start_quiz_session(req: Request):
             session_id = s_res.data[0]["id"]
             print(f"🆕 새 세션 생성: {session_id}")
 
-        # ✅ 실행(run) 생성 (퀴즈 시도 단위)
         run = {
             "session_id": session_id,
             "user_id": user_id,
@@ -186,7 +210,6 @@ async def generate_quiz_from_url(req: Request):
 
     # ✅ Supabase 저장
     try:
-        # 기존 session/run을 사용
         questions = []
         for q in quiz_data:
             answer = q.get("answer") or q.get("correct_answer") or ""
@@ -211,13 +234,10 @@ async def generate_quiz_from_url(req: Request):
 
         # ✅ quiz_runs 업데이트
         supabase.table("quiz_runs").update({"quiz_count": len(inserted.data)}).eq("id", run_id).execute()
+        # ✅ quiz_sessions 업데이트
+        supabase.table("quiz_sessions").update({"quiz_count": len(inserted.data)}).eq("id", session_id).execute()
 
-        # ✅ quiz_sessions에도 quiz_count 반영
-        supabase.table("quiz_sessions").update({
-            "quiz_count": len(inserted.data)
-        }).eq("id", session_id).execute()
-
-        # ✅ 첫 메시지 로그 저장
+        # ✅ 첫 메시지 저장
         supabase.table("quiz_messages").insert({
             "session_id": session_id,
             "run_id": run_id,
@@ -238,87 +258,3 @@ async def generate_quiz_from_url(req: Request):
     except Exception as e:
         print("❌ Supabase 저장 실패:", e)
         return JSONResponse(status_code=500, content={"error": str(e)})
-
-
-# ---------------- 퀴즈 시도 + 정답 비교 ----------------
-@router.post("/attempt")
-async def record_quiz_attempt(req: Request):
-    try:
-        data = await req.json()
-        print("🟢 /quiz/attempt 요청 도착:", data)
-
-        user_email = data.get("user_email")
-        question_id = data.get("question_id")
-        user_answer = (data.get("user_answer") or "").strip()
-        session_id = data.get("session_id")
-        run_id = data.get("run_id")
-
-        if not user_email or not question_id:
-            return JSONResponse(status_code=400, content={"error": "user_email 또는 question_id 누락"})
-
-        # ✅ user_id 조회
-        user_res = supabase.table("profiles").select("id").eq("email", user_email).single().execute()
-        if not user_res.data:
-            return JSONResponse(status_code=404, content={"error": "해당 이메일 사용자를 찾을 수 없습니다."})
-        user_id = user_res.data["id"]
-
-        # ✅ 정답 조회
-        q_res = supabase.table("quiz_questions").select("answer").eq("id", question_id).single().execute()
-        if not q_res.data:
-            return JSONResponse(status_code=404, content={"error": "문제를 찾을 수 없습니다."})
-        correct_answer = (q_res.data["answer"] or "").strip()
-        is_correct = user_answer.lower() == correct_answer.lower()
-
-        # ✅ 결과 저장
-        supabase.table("quiz_answers").insert({
-            "session_id": session_id,
-            "question_id": question_id,
-            "user_id": user_id,
-            "user_answer": user_answer,
-            "is_correct": is_correct
-        }).execute()
-
-        # ✅ 오답 기록
-        if not is_correct:
-            supabase.table("quiz_incorrect_notes").insert({
-                "user_id": user_id,
-                "question_id": question_id,
-                "reviewed": False
-            }).execute()
-
-        # ✅ 메시지 로그 저장
-        order_idx = int(datetime.now().timestamp())
-        messages = [
-            {
-                "session_id": session_id,
-                "run_id": run_id,
-                "user_id": user_id,
-                "role": "user",
-                "kind": "text",
-                "payload": json.dumps({"text": user_answer}),
-                "order_index": order_idx,
-            },
-            {
-                "session_id": session_id,
-                "run_id": run_id,
-                "user_id": user_id,
-                "role": "ai",
-                "kind": "text",
-                "payload": json.dumps({
-                    "text": "✅ 정답입니다!" if is_correct else f"❌ 오답입니다. 정답은 {correct_answer}"
-                }),
-                "order_index": order_idx + 1,
-            },
-        ]
-        supabase.table("quiz_messages").insert(messages).execute()
-
-        print("✅ 퀴즈 채점 완료:", {"is_correct": is_correct, "정답": correct_answer})
-        return JSONResponse({
-            "message": "정답 판정 완료",
-            "is_correct": is_correct,
-            "correct_answer": correct_answer,
-        }, status_code=200)
-
-    except Exception as e:
-        print("❌ 퀴즈 시도 저장 실패:", str(e))
-        return JSONResponse({"error": str(e)}, status_code=500)
