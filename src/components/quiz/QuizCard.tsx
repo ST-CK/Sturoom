@@ -27,25 +27,21 @@ export default function QuizCard({ onStart }: Props) {
   const BACKEND_URL =
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:5000";
 
-  // ✅ 세션 초기화 (onAuthStateChange로 보완)
+  // ✅ 세션 초기화
   useEffect(() => {
     if (typeof window === "undefined") return;
     let mounted = true;
 
     (async () => {
       const { data } = await supabase.auth.getSession();
-      console.log("📘 세션 로드 결과:", data);
-
       if (data.session && mounted) {
         setReady(true);
       } else {
         const {
           data: { subscription },
         } = supabase.auth.onAuthStateChange((_event, session) => {
-          console.log("📗 onAuthStateChange:", _event, session);
           if (session && mounted) setReady(true);
         });
-
         return () => {
           subscription.unsubscribe();
         };
@@ -57,12 +53,8 @@ export default function QuizCard({ onStart }: Props) {
     };
   }, []);
 
-  if (!ready)
-    return (
-      <div className="w-full text-center text-slate-600 py-6">
-        🔄 세션 초기화 중...
-      </div>
-    );
+  // ✅ SSR/Hydration 불일치 방지
+  if (!ready) return null;
 
   // ✅ 강의 목록 불러오기
   useEffect(() => {
@@ -101,10 +93,6 @@ export default function QuizCard({ onStart }: Props) {
   async function handleStart() {
     if (!lectureId || !weekId) {
       alert("강의와 주차를 먼저 선택하세요.");
-      return;
-    }
-    if (typeof onStart !== "function") {
-      console.error("❌ onStart prop is not provided");
       return;
     }
 

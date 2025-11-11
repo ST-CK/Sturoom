@@ -1,12 +1,15 @@
-"use client";
+// "use client";
 
 import { useState, useEffect, useRef } from "react";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels";
+import dynamic from "next/dynamic";
 import ChatSidebar from "./ChatSidebar";
 import ChatMessage from "./ChatMessage";
-import QuizCard from "./QuizCard";
 import Composer from "./Composer";
+
+// ✅ SSR 시 깨지지 않도록 dynamic import
+const QuizCard = dynamic(() => import("./QuizCard"), { ssr: false });
 
 type QuizType = "multiple" | "ox" | "short" | "mixed";
 type QuizItem = { id: string; question: string; choices?: string[] };
@@ -26,10 +29,15 @@ export default function QuizChat() {
   const BACKEND_URL =
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:5000";
 
+  // ✅ 메시지 초기화 (1회만)
   useEffect(() => {
-    setMessages([{ id: 1, role: "ai", kind: "card" }]);
+    if (messages.length === 0) {
+      setMessages([{ id: 1, role: "ai", kind: "card" }]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ✅ 퀴즈 제출
   async function send() {
     if (!composer.trim() || !sessionId || !quizList.length) return;
     const answer = composer.trim();
@@ -77,6 +85,7 @@ export default function QuizChat() {
     ]);
   }
 
+  // ✅ 퀴즈 시작
   async function handleStartQuiz({
     lectureId,
     weekId,
