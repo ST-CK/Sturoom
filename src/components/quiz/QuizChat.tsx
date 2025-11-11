@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { supabase } from "@/lib/supabaseClient";
 import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels";
 import ChatSidebar from "./ChatSidebar";
 import ChatMessage from "./ChatMessage";
@@ -26,7 +26,6 @@ type QuizPayload = {
 
 // ---------------- 메인 컴포넌트 ----------------
 export default function QuizChat() {
-  const supabase = createClientComponentClient();
   const [messages, setMessages] = useState<any[]>([]);
   const [composer, setComposer] = useState("");
   const [quizList, setQuizList] = useState<QuizItem[]>([]);

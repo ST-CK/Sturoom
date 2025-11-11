@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { supabase } from "@/lib/supabaseClient";
 
 type QuizMode = "multiple" | "ox" | "short" | "mixed";
 
@@ -16,7 +16,6 @@ type Props = {
 };
 
 export default function QuizCard({ onStart }: Props) {
-  const supabase = createClientComponentClient();
 
   const [lectures, setLectures] = useState<any[]>([]);
   const [weeks, setWeeks] = useState<any[]>([]);
