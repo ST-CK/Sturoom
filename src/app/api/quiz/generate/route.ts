@@ -1,21 +1,19 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { supabase } from "@/lib/supabaseClient";
 
+// ✅ 백엔드 URL (.env.local에서 NEXT_PUBLIC_API_BASE_URL로 지정)
 const BACKEND_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:5000";
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:5000/api";
 
-// Supabase 서버 클라이언트
+// ✅ Supabase 서버 클라이언트 (서버 전용)
 const supabaseServer = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-/* 
-========================================
+/* ---------------------------------------------------------
 1️⃣ 세션 생성 (/quiz/session/start)
-========================================
-*/
+--------------------------------------------------------- */
 export async function POST(req: Request) {
   try {
     const authHeader = req.headers.get("authorization");
@@ -25,7 +23,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
     }
 
-    // ✅ 토큰으로 유저 검증
+    // ✅ Supabase 인증 확인
     const { data, error } = await supabaseServer.auth.getUser(token);
     if (error || !data?.user) {
       return NextResponse.json({ error: "세션 만료 또는 잘못된 토큰" }, { status: 401 });
@@ -35,9 +33,13 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { room_id, post_id, mode } = body;
 
+    // ✅ FastAPI 서버로 세션 요청
     const res = await fetch(`${BACKEND_URL}/quiz/session/start`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify({
         user_id: user.id,
         room_id,
@@ -52,18 +54,13 @@ export async function POST(req: Request) {
     return NextResponse.json(data2, { status: 200 });
   } catch (err: any) {
     console.error("❌ /quiz/session/start 에러:", err);
-    return NextResponse.json(
-      { error: err.message || "서버 내부 오류" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: err.message || "서버 내부 오류" }, { status: 500 });
   }
 }
 
-/* 
-========================================
+/* ---------------------------------------------------------
 2️⃣ 파일 기반 퀴즈 생성 (/quiz/from-url)
-========================================
-*/
+--------------------------------------------------------- */
 export async function PUT(req: Request) {
   try {
     const authHeader = req.headers.get("authorization");
@@ -73,6 +70,7 @@ export async function PUT(req: Request) {
       return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
     }
 
+    // ✅ 유저 인증
     const { data, error } = await supabaseServer.auth.getUser(token);
     if (error || !data?.user) {
       return NextResponse.json({ error: "세션 만료 또는 잘못된 토큰" }, { status: 401 });
@@ -83,15 +81,16 @@ export async function PUT(req: Request) {
     const { file_urls, mode, room_id, week_id } = body;
 
     if (!file_urls || !Array.isArray(file_urls)) {
-      return NextResponse.json(
-        { error: "file_urls 배열이 필요합니다." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "file_urls 배열이 필요합니다." }, { status: 400 });
     }
 
+    // ✅ FastAPI 호출
     const res = await fetch(`${BACKEND_URL}/quiz/from-url`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify({
         file_urls,
         mode,
@@ -107,18 +106,13 @@ export async function PUT(req: Request) {
     return NextResponse.json(data2, { status: 200 });
   } catch (err: any) {
     console.error("❌ /quiz/from-url 에러:", err);
-    return NextResponse.json(
-      { error: err.message || "서버 내부 오류" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: err.message || "서버 내부 오류" }, { status: 500 });
   }
 }
 
-/* 
-========================================
+/* ---------------------------------------------------------
 3️⃣ 퀴즈 시도 기록 (/quiz/attempt)
-========================================
-*/
+--------------------------------------------------------- */
 export async function PATCH(req: Request) {
   try {
     const authHeader = req.headers.get("authorization");
@@ -144,21 +138,18 @@ export async function PATCH(req: Request) {
       );
     }
 
-    // ✅ DB에서 UUID 확인
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("id", user.id)
-      .single();
-
+    // ✅ FastAPI 호출
     const res = await fetch(`${BACKEND_URL}/quiz/attempt`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify({
         session_id,
         question_id,
         user_answer,
-        user_id: profile?.id || user.id,
+        user_id: user.id,
       }),
     });
 
@@ -168,9 +159,6 @@ export async function PATCH(req: Request) {
     return NextResponse.json(data2, { status: 200 });
   } catch (err: any) {
     console.error("❌ /quiz/attempt 에러:", err);
-    return NextResponse.json(
-      { error: err.message || "서버 내부 오류" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: err.message || "서버 내부 오류" }, { status: 500 });
   }
 }
