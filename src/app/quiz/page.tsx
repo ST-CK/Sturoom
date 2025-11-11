@@ -1,3 +1,5 @@
+"use client";
+
 import HideFooterOnMount from "@/components/layout/HideFooterOnMount";
 import QuizChat from "@/components/quiz/QuizChat";
 
