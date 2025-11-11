@@ -195,6 +195,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
 type QuizMode = "multiple" | "ox" | "short" | "mixed";
 
@@ -206,19 +207,16 @@ type Props = {
     sessionId: string;
     runId: string;
   }) => void;
-  supabase: any; // ✅ 상위에서 받은 Supabase 인스턴스
 };
 
-export default function QuizCard({ onStart, supabase }: Props) {
+export default function QuizCard({ onStart }: Props) {
+  const supabase = createClientComponentClient();
   const [lectures, setLectures] = useState<any[]>([]);
   const [weeks, setWeeks] = useState<any[]>([]);
   const [lectureId, setLectureId] = useState("");
   const [weekId, setWeekId] = useState("");
   const [mode, setMode] = useState<QuizMode>("mixed");
   const [loading, setLoading] = useState(false);
-
-  const BACKEND_URL =
-    process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:5000";
 
   // ✅ 강의 목록 불러오기
   useEffect(() => {
@@ -258,23 +256,25 @@ export default function QuizCard({ onStart, supabase }: Props) {
 
     setLoading(true);
     try {
+      // ✅ access_token 가져오기
       const {
         data: { session },
-        error,
       } = await supabase.auth.getSession();
 
-      if (error || !session?.user) {
+      if (!session?.user) {
         alert("로그인이 필요합니다.");
         return;
       }
 
-      const user = session.user;
+      const token = session.access_token;
 
-      const sessionRes = await fetch(`${BACKEND_URL}/quiz/session/start`, {
+      const sessionRes = await fetch("/api/quiz/session/start", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // ✅ 토큰 전달
+        },
         body: JSON.stringify({
-          user_id: user.id,
           room_id: lectureId,
           post_id: weekId,
           mode,
@@ -306,6 +306,7 @@ export default function QuizCard({ onStart, supabase }: Props) {
       </h3>
 
       <div className="space-y-4">
+        {/* ✅ 강의 선택 */}
         <select
           className="w-full border border-slate-300 rounded-lg px-3 py-2"
           value={lectureId}
@@ -319,6 +320,7 @@ export default function QuizCard({ onStart, supabase }: Props) {
           ))}
         </select>
 
+        {/* ✅ 주차 선택 */}
         <select
           className="w-full border border-slate-300 rounded-lg px-3 py-2"
           value={weekId}
@@ -333,6 +335,7 @@ export default function QuizCard({ onStart, supabase }: Props) {
           ))}
         </select>
 
+        {/* ✅ 모드 선택 */}
         <div className="grid grid-cols-4 gap-2">
           {(["multiple", "ox", "short", "mixed"] as const).map((m) => (
             <button
@@ -356,6 +359,7 @@ export default function QuizCard({ onStart, supabase }: Props) {
           ))}
         </div>
 
+        {/* ✅ 시작 버튼 */}
         <button
           disabled={loading}
           onClick={handleStart}
