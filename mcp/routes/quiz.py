@@ -261,3 +261,4 @@ async def generate_quiz_from_url(req: Request):
     except Exception as e:
         print("❌ Supabase 저장 실패:", e)
         return JSONResponse(status_code=500, content={"error": str(e)})
+
