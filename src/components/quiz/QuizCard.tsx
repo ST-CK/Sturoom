@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabaseClient";
 type QuizMode = "multiple" | "ox" | "short" | "mixed";
 
 type Props = {
+  // QuizChat에서 handleStartQuiz를 넘겨줌
   onStart: (args: {
     lectureId: string;
     weekId: string;
@@ -26,39 +27,68 @@ export default function QuizCard({ onStart }: Props) {
   const BACKEND_URL =
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:5000";
 
+  // 🔹 강의 목록
   useEffect(() => {
     (async () => {
-      const res = await fetch("/api/library/classrooms");
-      if (res.ok) setLectures(await res.json());
+      try {
+        const res = await fetch("/api/library/classrooms");
+        if (res.ok) {
+          const data = await res.json();
+          setLectures(data);
+        }
+      } catch (err) {
+        console.error("❌ 강의 목록 로드 실패:", err);
+      }
     })();
   }, []);
 
+  // 🔹 주차 목록
   useEffect(() => {
-    if (!lectureId) return setWeeks([]);
+    if (!lectureId) {
+      setWeeks([]);
+      setWeekId("");
+      return;
+    }
+
     (async () => {
-      const res = await fetch(`/api/library/classrooms/${lectureId}/weeks`);
-      if (res.ok) setWeeks(await res.json());
+      try {
+        const res = await fetch(`/api/library/classrooms/${lectureId}/weeks`);
+        if (res.ok) {
+          const data = await res.json();
+          setWeeks(data);
+        }
+      } catch (err) {
+        console.error("❌ 주차 목록 로드 실패:", err);
+      }
     })();
   }, [lectureId]);
 
+  // ======================================================
+  // 🔥 신규 세션 생성 → 반드시 최초 카드에서만 실행됨
+  // ======================================================
   async function handleStart() {
-    if (!lectureId || !weekId) return alert("강의와 주차를 선택하세요.");
+    if (!lectureId || !weekId) {
+      alert("강의와 주차를 먼저 선택하세요.");
+      return;
+    }
+
     setLoading(true);
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      // 인증 정보
+      const { data: auth } = await supabase.auth.getSession();
+      const user = auth.session?.user;
+      const token = auth.session?.access_token;
 
-      if (!user) throw new Error("로그인이 필요합니다.");
+      if (!user || !token) {
+        throw new Error("로그인이 필요합니다.");
+      }
 
-      const { data: session } = await supabase.auth.getSession();
-      const token = session?.session?.access_token;
-
-      const res = await fetch(`${BACKEND_URL}/quiz/session/start`, {
+      // ⭐ 신규 세션 생성 요청
+      const res = await fetch(`/api/quiz/generate`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           user_id: user.id,
@@ -68,18 +98,23 @@ export default function QuizCard({ onStart }: Props) {
         }),
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || "세션 생성 실패");
+      const payload = await res.json();
+      if (!res.ok) {
+        console.error("❌ 세션 생성 실패:", payload);
+        throw new Error(payload?.error || "세션 생성 실패");
+      }
 
+      // QuizChat에 세션 & run 전달
       onStart({
         lectureId,
         weekId,
         mode,
-        sessionId: data.session_id,
-        runId: data.run_id,
+        sessionId: payload.session_id,
+        runId: payload.run_id,
       });
     } catch (e: any) {
-      alert(e.message);
+      console.error("❌ 세션 생성 중 오류:", e);
+      alert(e.message || "세션 생성 오류");
     } finally {
       setLoading(false);
     }
@@ -92,33 +127,36 @@ export default function QuizCard({ onStart }: Props) {
       </h3>
 
       <div className="space-y-4">
+        {/* 🔸 강의 선택 */}
         <select
-          className="w-full border rounded-lg px-3 py-2"
+          className="w-full border border-slate-300 rounded-lg px-3 py-2"
           value={lectureId}
           onChange={(e) => setLectureId(e.target.value)}
         >
           <option value="">강의를 선택하세요</option>
-          {lectures.map((l) => (
+          {lectures.map((l: any) => (
             <option key={l.id} value={l.id}>
               {l.title}
             </option>
           ))}
         </select>
 
+        {/* 🔸 주차 선택 */}
         <select
-          className="w-full border rounded-lg px-3 py-2"
+          className="w-full border border-slate-300 rounded-lg px-3 py-2"
           value={weekId}
           onChange={(e) => setWeekId(e.target.value)}
           disabled={!lectureId}
         >
           <option value="">주차를 선택하세요</option>
-          {weeks.map((w) => (
+          {weeks.map((w: any) => (
             <option key={w.id} value={w.id}>
               {w.week_number}주차 - {w.title}
             </option>
           ))}
         </select>
 
+        {/* 🔸 모드 선택 */}
         <div className="grid grid-cols-4 gap-2">
           {(["multiple", "ox", "short", "mixed"] as const).map((m) => (
             <button
@@ -142,6 +180,7 @@ export default function QuizCard({ onStart }: Props) {
           ))}
         </div>
 
+        {/* 🔸 퀴즈 시작 */}
         <button
           disabled={loading}
           onClick={handleStart}
