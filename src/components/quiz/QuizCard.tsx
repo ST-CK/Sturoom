@@ -1,204 +1,3 @@
-// "use client";
-
-// import { useEffect, useState } from "react";
-// import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-
-// type QuizMode = "multiple" | "ox" | "short" | "mixed";
-
-// type Props = {
-//   onStart: (args: {
-//     lectureId: string;
-//     weekId: string;
-//     mode: QuizMode;
-//     sessionId: string;
-//     runId: string;
-//   }) => void;
-// };
-
-// export default function QuizCard({ onStart }: Props) {
-//   const supabase = createClientComponentClient();
-
-//   const [lectures, setLectures] = useState<any[]>([]);
-//   const [weeks, setWeeks] = useState<any[]>([]);
-//   const [lectureId, setLectureId] = useState("");
-//   const [weekId, setWeekId] = useState("");
-//   const [mode, setMode] = useState<QuizMode>("mixed");
-//   const [loading, setLoading] = useState(false);
-
-//   // 🔗 백엔드 주소
-//   const BACKEND_URL =
-//     process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:5000";
-
-//   // ✅ 강의 목록 불러오기
-//   useEffect(() => {
-//     (async () => {
-//       try {
-//         const res = await fetch("/api/library/classrooms");
-//         if (!res.ok) return;
-//         const data = await res.json();
-//         setLectures(data || []);
-//       } catch {
-//         // ignore
-//       }
-//     })();
-//   }, []);
-
-//   // ✅ 주차 목록 불러오기 (강의 선택 시)
-//   useEffect(() => {
-//     if (!lectureId) {
-//       setWeeks([]);
-//       setWeekId("");
-//       return;
-//     }
-
-//     (async () => {
-//       try {
-//         const res = await fetch(`/api/library/classrooms/${lectureId}/weeks`);
-//         if (!res.ok) return;
-//         const data = await res.json();
-//         setWeeks(data || []);
-//       } catch {
-//         // ignore
-//       }
-//     })();
-//   }, [lectureId]);
-
-//   // ✅ 세션만 생성 (퀴즈 생성은 상위에서 수행)
-//   async function handleStart() {
-//     if (!lectureId || !weekId) {
-//       alert("강의와 주차를 먼저 선택하세요.");
-//       return;
-//     }
-
-//     setLoading(true);
-
-//     try {
-//       // ✅ 세션 안정적으로 가져오기 (Safari 대응)
-//       const sessionData = await supabase.auth.getSession();
-//       const session = sessionData?.data?.session;
-//       const user = session?.user;
-
-//       if (!user?.id || !session?.access_token) {
-//         alert("로그인이 필요합니다. 다시 로그인 후 시도해주세요.");
-//         return;
-//       }
-
-//       // ✅ 세션 생성 API 호출
-//       const sessionRes = await fetch(`${BACKEND_URL}/quiz/session/start`, {
-//         method: "POST",
-//         headers: {
-//           "Content-Type": "application/json",
-//           Authorization: `Bearer ${session.access_token}`, // 토큰 전달
-//         },
-//         credentials: "include", // Safari/Vercel 쿠키 대응
-//         body: JSON.stringify({
-//           user_id: user.id,
-//           room_id: lectureId,
-//           post_id: weekId,
-//           mode,
-//         }),
-//       });
-
-//       const payload = await sessionRes.json();
-//       if (!sessionRes.ok) throw new Error(payload?.error || "세션 생성 실패");
-
-//       if (!payload?.session_id || !payload?.run_id) {
-//         throw new Error("세션 응답이 올바르지 않습니다.");
-//       }
-
-//       // 👉 상위 컴포넌트로 전달 (퀴즈 생성 시작)
-//       onStart({
-//         lectureId,
-//         weekId,
-//         mode,
-//         sessionId: payload.session_id,
-//         runId: payload.run_id,
-//       });
-//     } catch (e: any) {
-//       console.error("❌ handleStart 오류:", e);
-//       alert(e?.message || "세션 생성 중 오류가 발생했습니다.");
-//     } finally {
-//       setLoading(false);
-//     }
-//   }
-
-//   // ✅ UI 렌더링
-//   return (
-//     <div className="mx-auto w-[380px] bg-white/90 backdrop-blur-md rounded-2xl shadow-lg p-6 border border-slate-200/60">
-//       <h3 className="text-xl font-semibold text-center mb-4 text-slate-800">
-//         📘 AI 퀴즈 생성기
-//       </h3>
-
-//       <div className="space-y-4">
-//         {/* 🔹 강의 선택 */}
-//         <select
-//           className="w-full border border-slate-300 rounded-lg px-3 py-2"
-//           value={lectureId}
-//           onChange={(e) => setLectureId(e.target.value)}
-//         >
-//           <option value="">강의를 선택하세요</option>
-//           {lectures.map((l) => (
-//             <option key={l.id} value={l.id}>
-//               {l.title}
-//             </option>
-//           ))}
-//         </select>
-
-//         {/* 🔹 주차 선택 */}
-//         <select
-//           className="w-full border border-slate-300 rounded-lg px-3 py-2"
-//           value={weekId}
-//           onChange={(e) => setWeekId(e.target.value)}
-//           disabled={!lectureId}
-//         >
-//           <option value="">주차를 선택하세요</option>
-//           {weeks.map((w: any) => (
-//             <option key={w.id} value={w.id}>
-//               {w.week_number}주차 - {w.title}
-//             </option>
-//           ))}
-//         </select>
-
-//         {/* 🔹 모드 선택 */}
-//         <div className="grid grid-cols-4 gap-2">
-//           {(["multiple", "ox", "short", "mixed"] as const).map((m) => (
-//             <button
-//               key={m}
-//               onClick={() => setMode(m)}
-//               type="button"
-//               className={`rounded-lg px-3 py-2 text-sm border transition ${
-//                 mode === m
-//                   ? "border-indigo-500 bg-indigo-50 text-indigo-700 font-semibold"
-//                   : "border-slate-200 hover:bg-slate-50 text-slate-700"
-//               }`}
-//             >
-//               {m === "multiple"
-//                 ? "선다형"
-//                 : m === "ox"
-//                 ? "OX"
-//                 : m === "short"
-//                 ? "서술형"
-//                 : "혼합"}
-//             </button>
-//           ))}
-//         </div>
-
-//         {/* 🔹 시작 버튼 */}
-//         <button
-//           disabled={loading}
-//           onClick={handleStart}
-//           className={`w-full mt-3 rounded-lg py-2 font-semibold text-white transition ${
-//             loading
-//               ? "bg-gray-400 cursor-not-allowed"
-//               : "bg-indigo-600 hover:bg-indigo-700"
-//           }`}
-//         >
-//           {loading ? "세션 생성 중..." : "퀴즈 시작하기"}
-//         </button>
-//       </div>
-//     </div>
-//   );
-// }
 "use client";
 
 import { useEffect, useState } from "react";
@@ -207,6 +6,7 @@ import { supabase } from "@/lib/supabaseClient";
 type QuizMode = "multiple" | "ox" | "short" | "mixed";
 
 type Props = {
+  // QuizChat에서 handleStartQuiz를 넘겨줌
   onStart: (args: {
     lectureId: string;
     weekId: string;
@@ -217,7 +17,6 @@ type Props = {
 };
 
 export default function QuizCard({ onStart }: Props) {
-
   const [lectures, setLectures] = useState<any[]>([]);
   const [weeks, setWeeks] = useState<any[]>([]);
   const [lectureId, setLectureId] = useState("");
@@ -225,25 +24,25 @@ export default function QuizCard({ onStart }: Props) {
   const [mode, setMode] = useState<QuizMode>("mixed");
   const [loading, setLoading] = useState(false);
 
-  // 🔒 절대 키 이름 바꾸지 않음 (.env.local 그대로 사용)
   const BACKEND_URL =
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:5000";
 
-  // ✅ 강의 목록 불러오기
+  // 🔹 강의 목록
   useEffect(() => {
     (async () => {
       try {
         const res = await fetch("/api/library/classrooms");
-        if (!res.ok) return;
-        const data = await res.json();
-        setLectures(data || []);
-      } catch {
-        // silently ignore
+        if (res.ok) {
+          const data = await res.json();
+          setLectures(data);
+        }
+      } catch (err) {
+        console.error("❌ 강의 목록 로드 실패:", err);
       }
     })();
   }, []);
 
-  // ✅ 주차 목록 불러오기 (강의 선택 시)
+  // 🔹 주차 목록
   useEffect(() => {
     if (!lectureId) {
       setWeeks([]);
@@ -254,58 +53,58 @@ export default function QuizCard({ onStart }: Props) {
     (async () => {
       try {
         const res = await fetch(`/api/library/classrooms/${lectureId}/weeks`);
-        if (!res.ok) return;
-        const data = await res.json();
-        setWeeks(data || []);
-      } catch {
-        // silently ignore
+        if (res.ok) {
+          const data = await res.json();
+          setWeeks(data);
+        }
+      } catch (err) {
+        console.error("❌ 주차 목록 로드 실패:", err);
       }
     })();
   }, [lectureId]);
 
-  // ✅ 세션만 생성 (실제 퀴즈 생성은 상위 컴포넌트에서 from-url 호출)
+  // ======================================================
+  // 🔥 신규 세션 생성 → 반드시 최초 카드에서만 실행됨
+  // ======================================================
   async function handleStart() {
     if (!lectureId || !weekId) {
       alert("강의와 주차를 먼저 선택하세요.");
       return;
     }
+
     setLoading(true);
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      // 인증 정보
+      const { data: auth } = await supabase.auth.getSession();
+      const user = auth.session?.user;
+      const token = auth.session?.access_token;
 
-      if (!user?.id) {
-        alert("로그인이 필요합니다.");
-        return;
+      if (!user || !token) {
+        throw new Error("로그인이 필요합니다.");
       }
 
-      const sessionRes = await fetch(`${BACKEND_URL}/quiz/session/start`, {
+      // ⭐ 신규 세션 생성 요청
+      const res = await fetch(`/api/quiz/generate`, {
         method: "POST",
         headers: {
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // ✅ 토큰 전달
         },
-        credentials: "include",
         body: JSON.stringify({
           user_id: user.id,
           room_id: lectureId,
-          post_id: weekId, // 백엔드가 post_id로 받도록 유지
+          post_id: weekId,
           mode,
         }),
       });
 
-      const payload = await sessionRes.json();
-      if (!sessionRes.ok) {
+      const payload = await res.json();
+      if (!res.ok) {
+        console.error("❌ 세션 생성 실패:", payload);
         throw new Error(payload?.error || "세션 생성 실패");
       }
 
-      // payload: { session_id, run_id }
-      if (!payload?.session_id || !payload?.run_id) {
-        throw new Error("세션 응답이 올바르지 않습니다.");
-      }
-
-      // 👉 상위에서 /quiz/from-url 호출 + 전체 화면 로딩/블러 처리
+      // QuizChat에 세션 & run 전달
       onStart({
         lectureId,
         weekId,
@@ -314,14 +113,13 @@ export default function QuizCard({ onStart }: Props) {
         runId: payload.run_id,
       });
     } catch (e: any) {
-      console.error(e);
-      alert(e?.message || "세션 생성 중 오류가 발생했습니다.");
+      console.error("❌ 세션 생성 중 오류:", e);
+      alert(e.message || "세션 생성 오류");
     } finally {
       setLoading(false);
     }
   }
 
-  // ✅ UI 렌더링
   return (
     <div className="mx-auto w-[380px] bg-white/90 backdrop-blur-md rounded-2xl shadow-lg p-6 border border-slate-200/60">
       <h3 className="text-xl font-semibold text-center mb-4 text-slate-800">
@@ -329,21 +127,21 @@ export default function QuizCard({ onStart }: Props) {
       </h3>
 
       <div className="space-y-4">
-        {/* 🔹 강의 선택 */}
+        {/* 🔸 강의 선택 */}
         <select
           className="w-full border border-slate-300 rounded-lg px-3 py-2"
           value={lectureId}
           onChange={(e) => setLectureId(e.target.value)}
         >
           <option value="">강의를 선택하세요</option>
-          {lectures.map((l) => (
+          {lectures.map((l: any) => (
             <option key={l.id} value={l.id}>
               {l.title}
             </option>
           ))}
         </select>
 
-        {/* 🔹 주차 선택 */}
+        {/* 🔸 주차 선택 */}
         <select
           className="w-full border border-slate-300 rounded-lg px-3 py-2"
           value={weekId}
@@ -358,7 +156,7 @@ export default function QuizCard({ onStart }: Props) {
           ))}
         </select>
 
-        {/* ✅ 모드 선택 */}
+        {/* 🔸 모드 선택 */}
         <div className="grid grid-cols-4 gap-2">
           {(["multiple", "ox", "short", "mixed"] as const).map((m) => (
             <button
@@ -382,7 +180,7 @@ export default function QuizCard({ onStart }: Props) {
           ))}
         </div>
 
-        {/* ✅ 시작 버튼 (세션만 생성) */}
+        {/* 🔸 퀴즈 시작 */}
         <button
           disabled={loading}
           onClick={handleStart}
