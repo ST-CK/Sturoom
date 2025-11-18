@@ -6,7 +6,7 @@ const BACKEND_URL =
 
 const supabaseServer = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!   // ← 여기 변경됨
 );
 
 export async function POST(req: Request) {
@@ -82,7 +82,7 @@ export async function POST(req: Request) {
     const { data: post } = await supabaseServer
       .from("classroom_week_posts")
       .select("file_urls")
-      .eq("id", weekId)
+      .eq("id", Number(weekId))     // ← 숫자로 변환 필수
       .single();
 
     const file_urls = post?.file_urls || [];
