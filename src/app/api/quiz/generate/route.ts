@@ -4,10 +4,10 @@ import { createClient } from "@supabase/supabase-js";
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:5000";
 
-// 🔥 서버용 Supabase 클라이언트 (유저 검증용)
+// ⭐ 서버에서 Supabase 조회 → 반드시 Service Role Key 사용
 const supabaseServer = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!   // ← 여기 변경됨
 );
 
 export async function POST(req: Request) {
@@ -80,7 +80,7 @@ export async function POST(req: Request) {
     const { data: post, error: postErr } = await supabaseServer
       .from("classroom_week_posts")
       .select("file_urls")
-      .eq("id", Number(weekId))  // ←🔥 숫자로 변환해서 조회 필수
+      .eq("id", Number(weekId))     // ← 숫자로 변환 필수
       .single();
 
     if (postErr) {
