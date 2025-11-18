@@ -1,16 +1,18 @@
 "use client";
 
-import { supabase } from "@/lib/supabaseClient";
 import { useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
 
 export default function QuizRetryCard({
+  lectureId,
+  weekId,
+  mode,
   onRetry,
 }: {
-  onRetry: (args: {
-    sessionId: string;
-    runId: string;
-    first: any;
-  }) => void;
+  lectureId: string;
+  weekId: string;
+  mode: string;
+  onRetry: (args: { sessionId: string; runId: string; first: any }) => void;
 }) {
   const [loading, setLoading] = useState(false);
 
@@ -32,8 +34,9 @@ export default function QuizRetryCard({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          lectureId: "same", // 필요 시 수정
-          weekId: "same",
+          lectureId,
+          weekId,
+          mode,
         }),
       });
 
