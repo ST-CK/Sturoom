@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabaseClient";
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:5000";
 
-// Supabase 서버 클라이언트
+// 서버용 Supabase 클라이언트 (유저 검증용)
 const supabaseServer = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -13,7 +13,7 @@ const supabaseServer = createClient(
 
 /* 
 ========================================
-1️⃣ 세션 생성 (/quiz/session/start)
+1️⃣ 세션 생성 (/api/quiz/session/start)
 ========================================
 */
 export async function POST(req: Request) {
@@ -21,23 +21,23 @@ export async function POST(req: Request) {
     const authHeader = req.headers.get("authorization");
     const token = authHeader?.split(" ")[1];
 
-    if (!token) {
+    if (!token)
       return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
-    }
 
-    // ✅ 토큰으로 유저 검증
     const { data, error } = await supabaseServer.auth.getUser(token);
-    if (error || !data?.user) {
+    if (error || !data?.user)
       return NextResponse.json({ error: "세션 만료 또는 잘못된 토큰" }, { status: 401 });
-    }
 
     const user = data.user;
-    const body = await req.json();
-    const { room_id, post_id, mode } = body;
+    const { room_id, post_id, mode } = await req.json();
 
-    const res = await fetch(`${BACKEND_URL}/quiz/session/start`, {
+    // FastAPI 호출 (prefix 포함 + Authorization 추가)
+    const res = await fetch(`${BACKEND_URL}/api/quiz/session/start`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`, // 🔥 매우 중요
+      },
       body: JSON.stringify({
         user_id: user.id,
         room_id,
@@ -46,22 +46,19 @@ export async function POST(req: Request) {
       }),
     });
 
-    const data2 = await res.json();
-    if (!res.ok) throw new Error(data2?.error || "세션 생성 실패");
+    const result = await res.json();
+    if (!res.ok) throw new Error(result?.error || "세션 생성 실패");
 
-    return NextResponse.json(data2, { status: 200 });
+    return NextResponse.json(result);
   } catch (err: any) {
     console.error("❌ /quiz/session/start 에러:", err);
-    return NextResponse.json(
-      { error: err.message || "서버 내부 오류" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
 
 /* 
 ========================================
-2️⃣ 파일 기반 퀴즈 생성 (/quiz/from-url)
+2️⃣ 파일 기반 퀴즈 생성 (/api/quiz/from-url)
 ========================================
 */
 export async function PUT(req: Request) {
@@ -69,30 +66,26 @@ export async function PUT(req: Request) {
     const authHeader = req.headers.get("authorization");
     const token = authHeader?.split(" ")[1];
 
-    if (!token) {
+    if (!token)
       return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
-    }
 
     const { data, error } = await supabaseServer.auth.getUser(token);
-    if (error || !data?.user) {
+    if (error || !data?.user)
       return NextResponse.json({ error: "세션 만료 또는 잘못된 토큰" }, { status: 401 });
-    }
 
     const user = data.user;
-    const body = await req.json();
-    const { file_urls, mode, room_id, week_id } = body;
+    const { file_urls, mode, room_id, week_id, session_id, run_id } =
+      await req.json();
 
-    if (!file_urls || !Array.isArray(file_urls)) {
-      return NextResponse.json(
-        { error: "file_urls 배열이 필요합니다." },
-        { status: 400 }
-      );
-    }
-
-    const res = await fetch(`${BACKEND_URL}/quiz/from-url`, {
+    const res = await fetch(`${BACKEND_URL}/api/quiz/from-url`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`, // 🔥 추가
+      },
       body: JSON.stringify({
+        session_id,
+        run_id,
         file_urls,
         mode,
         user_id: user.id,
@@ -101,22 +94,19 @@ export async function PUT(req: Request) {
       }),
     });
 
-    const data2 = await res.json();
-    if (!res.ok) throw new Error(data2?.error || "퀴즈 생성 실패");
+    const result = await res.json();
+    if (!res.ok) throw new Error(result?.error || "퀴즈 생성 실패");
 
-    return NextResponse.json(data2, { status: 200 });
+    return NextResponse.json(result);
   } catch (err: any) {
     console.error("❌ /quiz/from-url 에러:", err);
-    return NextResponse.json(
-      { error: err.message || "서버 내부 오류" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
 
 /* 
 ========================================
-3️⃣ 퀴즈 시도 기록 (/quiz/attempt)
+3️⃣ 퀴즈 시도 기록 (/api/quiz/attempt)
 ========================================
 */
 export async function PATCH(req: Request) {
@@ -124,53 +114,44 @@ export async function PATCH(req: Request) {
     const authHeader = req.headers.get("authorization");
     const token = authHeader?.split(" ")[1];
 
-    if (!token) {
+    if (!token)
       return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
-    }
 
     const { data, error } = await supabaseServer.auth.getUser(token);
-    if (error || !data?.user) {
+    if (error || !data?.user)
       return NextResponse.json({ error: "세션 만료 또는 잘못된 토큰" }, { status: 401 });
-    }
 
     const user = data.user;
-    const body = await req.json();
-    const { session_id, question_id, user_answer } = body;
+    const { session_id, question_id, user_answer } = await req.json();
 
-    if (!question_id || !user_answer) {
-      return NextResponse.json(
-        { error: "question_id 또는 user_answer 누락" },
-        { status: 400 }
-      );
-    }
-
-    // ✅ DB에서 UUID 확인
+    // DB에서 실제 UUID 가져오기
     const { data: profile } = await supabase
       .from("profiles")
       .select("id")
       .eq("id", user.id)
       .single();
 
-    const res = await fetch(`${BACKEND_URL}/quiz/attempt`, {
+    const res = await fetch(`${BACKEND_URL}/api/quiz/attempt`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`, // 🔥 중요
+      },
       body: JSON.stringify({
         session_id,
         question_id,
         user_answer,
-        user_id: profile?.id || user.id,
+        user_email: user.email,
+        user_id: profile?.id ?? user.id,
       }),
     });
 
-    const data2 = await res.json();
-    if (!res.ok) throw new Error(data2?.error || "퀴즈 시도 저장 실패");
+    const result = await res.json();
+    if (!res.ok) throw new Error(result?.error || "퀴즈 시도 저장 실패");
 
-    return NextResponse.json(data2, { status: 200 });
+    return NextResponse.json(result);
   } catch (err: any) {
     console.error("❌ /quiz/attempt 에러:", err);
-    return NextResponse.json(
-      { error: err.message || "서버 내부 오류" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

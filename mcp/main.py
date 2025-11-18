@@ -2,6 +2,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routes import quiz, chat
 
+
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+print("📌 FASTAPI OPENAI KEY:", OPENAI_API_KEY)
+
 app = FastAPI()
 
 # ✅ CORS 허용
