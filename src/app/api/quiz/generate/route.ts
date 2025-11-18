@@ -6,8 +6,8 @@ const BACKEND_URL =
 
 // 🔥 서버용 Supabase 클라이언트 (유저 검증용)
 const supabaseServer = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
 export async function POST(req: Request) {
