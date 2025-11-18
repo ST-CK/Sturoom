@@ -4,7 +4,6 @@ import { createClient } from "@supabase/supabase-js";
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:5000";
 
-// ⭐ 서버에서 Supabase 조회 → 반드시 Service Role Key 사용
 const supabaseServer = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!   // ← 여기 변경됨
@@ -49,19 +48,22 @@ export async function POST(req: Request) {
     // -----------------------------
     // 3) FastAPI → 세션 생성
     // -----------------------------
-    const sessionRes = await fetch(`${BACKEND_URL}/api/quiz/session/start`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        user_id: user.id,
-        room_id: lectureId,
-        post_id: weekId,
-        mode,
-      }),
-    });
+    const sessionRes = await fetch(
+      `${BACKEND_URL}/api/quiz/session/start`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+          room_id: lectureId,
+          post_id: weekId,
+          mode,
+        }),
+      }
+    );
 
     const sessionPayload = await sessionRes.json();
 
@@ -77,19 +79,11 @@ export async function POST(req: Request) {
     // -----------------------------
     // 4) Supabase에서 파일 URL 가져오기
     // -----------------------------
-    const { data: post, error: postErr } = await supabaseServer
+    const { data: post } = await supabaseServer
       .from("classroom_week_posts")
       .select("file_urls")
       .eq("id", Number(weekId))     // ← 숫자로 변환 필수
       .single();
-
-    if (postErr) {
-      console.error("❌ Supabase file_urls 조회 오류:", postErr);
-      return NextResponse.json(
-        { error: "파일 정보를 불러오지 못했습니다." },
-        { status: 500 }
-      );
-    }
 
     const file_urls = post?.file_urls || [];
 
@@ -129,10 +123,10 @@ export async function POST(req: Request) {
     if (!quizList || quizList.length === 0)
       throw new Error("퀴즈 생성 결과 없음");
 
-    const first = quizList[0];
+    const first = quizList[0]; // 첫 번째 문제
 
     // -----------------------------
-    // 6) 첫 문제 quiz_messages 저장
+    // 6) 첫 문제 quiz_messages에 저장
     // -----------------------------
     await supabaseServer.from("quiz_messages").insert({
       session_id: sessionId,
@@ -148,7 +142,7 @@ export async function POST(req: Request) {
     });
 
     // -----------------------------
-    // 7) 응답 반환
+    // 7) 첫 문제 반환
     // -----------------------------
     return NextResponse.json({
       message: "퀴즈 생성 완료",

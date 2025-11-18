@@ -3,68 +3,74 @@
 import { useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 
-export default function QuizRetryCard({
-  lectureId,
-  weekId,
-  mode,
-  onRetry,
-}: {
-  lectureId: string;
-  weekId: string;
-  mode: string;
-  onRetry: (args: { sessionId: string; runId: string; first: any }) => void;
-}) {
+type Props = {
+  sessionId: string;
+  onRetry: (args: { sessionId: string; runId: string }) => void;
+};
+
+export default function QuizRetryCard({ sessionId, onRetry }: Props) {
   const [loading, setLoading] = useState(false);
 
-  async function retry() {
+  const BACKEND_URL =
+    process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:5000";
+
+  async function handleRetry() {
     setLoading(true);
 
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      // 1) 사용자 인증
+      const { data: auth } = await supabase.auth.getSession();
+      const token = auth.session?.access_token;
 
-      const token = session?.access_token;
-      if (!token) throw new Error("로그인 필요!");
+      if (!token) {
+        throw new Error("로그인이 필요합니다.");
+      }
 
-      const res = await fetch("/api/quiz/generate", {
+      // 2) run 생성 요청
+      const res = await fetch(`${BACKEND_URL}/api/quiz/run/start`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          lectureId,
-          weekId,
-          mode,
-        }),
+        credentials: "include",
+        body: JSON.stringify({ session_id: sessionId }),
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      const result = await res.json();
+      if (!res.ok) throw new Error(result?.error || "재도전 실행 실패");
 
+      // 새 runId 전달
       onRetry({
-        sessionId: data.sessionId,
-        runId: data.runId,
-        first: data.firstQuestion,
+        sessionId: result.session_id,
+        runId: result.run_id,
       });
-    } catch (e: any) {
-      alert(e.message);
+    } catch (err: any) {
+      alert(err.message || "재도전 생성 실패");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="p-4 bg-white border rounded-xl shadow-md">
-      <h3 className="font-semibold mb-3">🔁 다시 풀기</h3>
+    <div className="mx-auto w-[350px] bg-white/90 backdrop-blur-md rounded-2xl shadow-lg p-6 border border-slate-200/60 animate-[fadeIn_0.25s_ease]">
+      <h3 className="text-lg font-semibold text-center mb-2 text-slate-800">
+        🔁 기존 세션 퀴즈 재도전
+      </h3>
+      <p className="text-center text-sm text-slate-600 mb-4 leading-relaxed">
+        이 채팅방에서 새 퀴즈를 이어서 생성합니다.<br />
+        세션은 그대로 유지되고 새로운 퀴즈만 추가됩니다.
+      </p>
 
       <button
-        onClick={retry}
         disabled={loading}
-        className="w-full bg-indigo-600 text-white py-2 rounded-lg"
+        onClick={handleRetry}
+        className={`
+          w-full rounded-lg py-2 font-semibold text-white transition
+          ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-indigo-600 hover:bg-indigo-700"}
+        `}
       >
-        {loading ? "생성 중…" : "새 퀴즈 생성하기"}
+        {loading ? "새 퀴즈 준비 중..." : "새 퀴즈 생성하기"}
       </button>
     </div>
   );
