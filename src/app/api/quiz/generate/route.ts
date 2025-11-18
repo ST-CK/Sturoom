@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:5000";
 
-// 서버용 Supabase 클라이언트 (유저 검증용)
+// 서버용 Supabase 클라이언트 (토큰 검증용)
 const supabaseServer = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -12,89 +12,106 @@ const supabaseServer = createClient(
 
 export async function POST(req: Request) {
   try {
-    // -------------------------------------------
+    // ------------------------------
     // 1) 인증 검사
-    // -------------------------------------------
+    // ------------------------------
     const authHeader = req.headers.get("authorization");
     const token = authHeader?.split(" ")[1];
 
-    if (!token)
+    if (!token) {
       return NextResponse.json(
         { error: "로그인이 필요합니다." },
         { status: 401 }
       );
+    }
 
-    // Supabase에서 실제 사용자 불러오기
     const { data: userData, error: userErr } =
       await supabaseServer.auth.getUser(token);
 
-    if (userErr || !userData?.user)
+    if (userErr || !userData?.user) {
       return NextResponse.json(
         { error: "세션 만료 또는 잘못된 토큰" },
         { status: 401 }
       );
+    }
 
     const user = userData.user;
 
-    // -------------------------------------------
-    // 2) 프론트에서 값 받기
-    // -------------------------------------------
+    // ------------------------------
+    // 2) 프론트에서 받은 값 읽기
+    // ------------------------------
     const { lectureId, weekId, mode } = await req.json();
 
-    if (!lectureId || !weekId)
+    if (!lectureId || !weekId) {
       return NextResponse.json(
         { error: "lectureId, weekId가 필요합니다." },
         { status: 400 }
       );
+    }
 
-    // -------------------------------------------
-    // 3) FastAPI → 세션 생성
-    // -------------------------------------------
-    const sessionRes = await fetch(`${BACKEND_URL}/api/quiz/session/start`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        user_id: user.id,
-        room_id: lectureId,
-        post_id: weekId,
-        mode,
-      }),
-    });
+    console.log("📘 입력값:", { lectureId, weekId, mode });
+
+    // ------------------------------
+    // 3) FastAPI - 세션 생성
+    // ------------------------------
+    const sessionRes = await fetch(
+      `${BACKEND_URL}/api/quiz/session/start`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          room_id: lectureId,
+          post_id: weekId,
+          mode,
+        }),
+      }
+    );
 
     const sessionPayload = await sessionRes.json();
 
-    if (!sessionRes.ok)
-      throw new Error(sessionPayload?.error || "세션 생성 실패");
+    if (!sessionRes.ok) {
+      throw new Error(sessionPayload.error || "세션 생성 실패");
+    }
 
     const sessionId = sessionPayload.session_id;
     const runId = sessionPayload.run_id;
 
-    if (!sessionId || !runId)
+    if (!sessionId || !runId) {
       throw new Error("세션 생성 실패 (session_id/run_id 없음)");
+    }
 
-    // -------------------------------------------
-    // 4) Supabase에서 파일 URL 가져오기
-    // -------------------------------------------
-    const { data: post } = await supabaseServer
+    console.log("🔥 세션 생성 완료:", sessionId, runId);
+
+    // ------------------------------
+    // 4) Supabase에서 file_urls 가져오기
+    // ------------------------------
+    const { data: post, error: postErr } = await supabaseServer
       .from("classroom_week_posts")
       .select("file_urls")
       .eq("id", weekId)
       .single();
 
+    if (postErr) {
+      throw new Error("파일 목록 로드 실패");
+    }
+
     const file_urls = post?.file_urls || [];
 
-    if (!file_urls.length)
+    if (!file_urls.length) {
       return NextResponse.json(
-        { error: "파일이 없어서 퀴즈를 생성할 수 없습니다." },
+        { error: "해당 주차에 업로드된 파일이 없습니다." },
         { status: 400 }
       );
+    }
 
-    // -------------------------------------------
-    // 5) FastAPI → 퀴즈 생성
-    // -------------------------------------------
+    console.log("📄 파일 목록:", file_urls);
+
+    // ------------------------------
+    // 5) FastAPI - 퀴즈 생성
+    // ------------------------------
     const quizRes = await fetch(`${BACKEND_URL}/api/quiz/from-url`, {
       method: "POST",
       headers: {
@@ -105,28 +122,29 @@ export async function POST(req: Request) {
         session_id: sessionId,
         run_id: runId,
         file_urls,
-        user_id: user.id,
-        room_id: lectureId,
-        week_id: weekId,
         mode,
       }),
     });
 
     const quizPayload = await quizRes.json();
 
-    if (!quizRes.ok)
-      throw new Error(quizPayload?.error || "퀴즈 생성 실패");
+    if (!quizRes.ok) {
+      throw new Error(quizPayload.error || "퀴즈 생성 실패");
+    }
 
     const quizList = quizPayload.quiz;
 
-    if (!quizList || quizList.length === 0)
+    if (!quizList || quizList.length === 0) {
       throw new Error("퀴즈 생성 결과 없음");
+    }
 
     const first = quizList[0];
 
-    // -------------------------------------------
-    // 6) 첫 문제 quiz_messages 저장
-    // -------------------------------------------
+    console.log("🎯 첫 번째 문제:", first);
+
+    // ------------------------------
+    // 6) 첫 문제를 quiz_messages에 저장
+    // ------------------------------
     await supabaseServer.from("quiz_messages").insert({
       session_id: sessionId,
       run_id: runId,
@@ -140,9 +158,9 @@ export async function POST(req: Request) {
       }),
     });
 
-    // -------------------------------------------
-    // 7) 첫 문제 + sessionId + runId 반환
-    // -------------------------------------------
+    // ------------------------------
+    // 7) 응답 반환
+    // ------------------------------
     return NextResponse.json({
       message: "퀴즈 생성 완료",
       sessionId,
@@ -150,7 +168,10 @@ export async function POST(req: Request) {
       firstQuestion: first,
     });
   } catch (err: any) {
-    console.error("❌ generate 에러:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error("❌ generate API 오류:", err);
+    return NextResponse.json(
+      { error: err.message || "알 수 없는 오류" },
+      { status: 500 }
+    );
   }
 }
