@@ -5,8 +5,7 @@ export default function Cta() {
   return (
     <section id="cta">
       <Container className="py-12 md:py-16">
-        <div className="rounded-3xl bg-gradient-to-tr from-indigo-600 to-sky-500 px-8 py-10 text-white shadow-lg text-center">
-
+        <div className="rounded-3xl bg-gradient-to-tr from-indigo-600 to-sky-500 px-6 py-8 md:px-8 md:py-10 text-white shadow-lg text-center">
           {/* Smaller Icon */}
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm">
             <Bot className="h-8 w-8 text-white" />
@@ -25,13 +24,13 @@ export default function Cta() {
           <div className="flex flex-wrap justify-center gap-3">
             <a
               href="/quiz"
-              className="rounded-xl bg-white px-5 py-2.5 font-semibold text-indigo-700 shadow-sm hover:bg-indigo-50"
+              className="w-full sm:w-auto rounded-xl bg-white px-5 py-2.5 text-center text-sm sm:text-base font-semibold text-indigo-700 shadow-sm hover:bg-indigo-50"
             >
               AI 퀴즈 풀기
             </a>
             <a
               href="/report"
-              className="rounded-xl border border-white/70 px-5 py-2.5 font-semibold text-white hover:bg-white/10"
+              className="w-full sm:w-auto rounded-xl border border-white/70 px-5 py-2.5 text-center text-sm sm:text-base font-semibold text-white hover:bg-white/10"
             >
               학습 리포트 보기
             </a>

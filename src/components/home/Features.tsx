@@ -52,23 +52,27 @@ const features = [
 export default function MainFeatures() {
   return (
     <section id="main-features">
-      <Container className="py-16 md:py-20">
-        <h2 className="mb-10 text-2xl font-bold md:text-3xl">
+      <Container className="py-12 sm:py-14 md:py-20">
+        <h2 className="mb-8 sm:mb-10 text-xl sm:text-2xl md:text-3xl font-bold text-center md:text-left">
           주요 기능 바로가기
         </h2>
 
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((item) => {
             const Icon = item.icon;
             return (
               <Link
                 key={item.title}
                 href={item.href}
-                className="rounded-2xl border bg-white p-6 shadow-sm transition hover:shadow-md hover:bg-gray-50"
+                className="rounded-2xl border bg-white p-5 sm:p-6 shadow-sm transition hover:shadow-md hover:bg-gray-50"
               >
-                <Icon className="mb-4 h-8 w-8 text-indigo-600" />
-                <h3 className="mb-1 font-semibold">{item.title}</h3>
-                <p className="text-sm text-gray-600">{item.desc}</p>
+                <Icon className="mb-4 h-7 w-7 sm:h-8 sm:w-8 text-indigo-600" />
+                <h3 className="mb-1 font-semibold text-sm sm:text-base">
+                  {item.title}
+                </h3>
+                <p className="text-xs sm:text-sm text-gray-600">
+                  {item.desc}
+                </p>
               </Link>
             );
           })}
