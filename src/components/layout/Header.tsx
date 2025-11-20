@@ -49,23 +49,25 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b bg-white/80 backdrop-blur">
-      {/* h-16 고정. 버튼을 컨테이너 '안' 첫 요소로 배치해서 로고와 안 겹침 */}
       <Container className="flex h-16 items-center justify-between py-0">
-        {/* 왼쪽: ☰ 버튼 + 로고/버전 + 사용 팁 */}
+        {/* 왼쪽: 햄버거 버튼 + 로고 + 사용 팁 */}
         <div className="flex items-center gap-3">
-          {/* ☰ 버튼: 살짝 왼쪽으로 당겨 가장자리 느낌 */}
+          {/* ☰ 버튼 */}
           <button
             onClick={() => setOpenSidebar(true)}
             aria-label="사이드바 열기"
             className="ml-[-6px] inline-flex shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white/70 px-2.5 py-1.5 text-xl leading-none text-slate-700 shadow-sm hover:bg-slate-50"
           >
-            <span aria-hidden className="-translate-y-[1px] inline-block scale-x-[1.35] leading-none">
+            <span
+              aria-hidden
+              className="-translate-y-[1px] inline-block scale-x-[1.35] leading-none"
+            >
               {"\u2630"}
             </span>
           </button>
 
+          {/* 로고 */}
           <Link href="/" className="flex items-center gap-2">
-            {/* 로고 네모: 연보라 + 민트 그라데이션 */}
             <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-purple-300 via-purple-400 to-teal-300" />
             <span className="text-lg font-semibold text-slate-800">Sturoom</span>
             <span className="flex items-center gap-1 text-sm">
@@ -76,16 +78,17 @@ export default function Header() {
             </span>
           </Link>
 
+          {/* 💡 사용 팁 – 이제 모바일에서도 항상 보이게 */}
           <Link
-            href="/#guide"
-            className="hidden md:inline-flex items-center gap-1 rounded-xl border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
+            href="/guide"
+            className="inline-flex items-center gap-1 rounded-xl border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-100"
           >
             💡 사용 팁
           </Link>
         </div>
 
-        {/* 오른쪽: 상태별 메뉴 */}
-        <nav className="hidden md:flex items-center gap-2">
+        {/* 오른쪽: 로그인/프로필 */}
+        <nav className="flex items-center gap-2">
           {/* 비로그인 */}
           {!loading && !user && (
             <>
@@ -105,9 +108,11 @@ export default function Header() {
           )}
 
           {/* 로딩 스켈레톤 */}
-          {loading && <div className="ml-1 h-9 w-28 animate-pulse rounded-lg bg-slate-200" />}
+          {loading && (
+            <div className="ml-1 h-9 w-28 animate-pulse rounded-lg bg-slate-200" />
+          )}
 
-          {/* 로그인 */}
+          {/* 로그인 상태 */}
           {!loading && user && (
             <div className="relative ml-1" ref={menuRef}>
               <button
@@ -117,11 +122,13 @@ export default function Header() {
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-sky-500 text-xs font-bold text-white shadow">
                   {initials}
                 </div>
-                <span className="max-w-[140px] truncate text-sm font-medium text-slate-800">
+                <span className="max-w-[120px] truncate text-sm font-medium text-slate-800">
                   {displayName}
                 </span>
                 <svg
-                  className={`h-4 w-4 text-slate-500 transition ${openMenu ? "rotate-180" : ""}`}
+                  className={`h-4 w-4 text-slate-500 transition ${
+                    openMenu ? "rotate-180" : ""
+                  }`}
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >
