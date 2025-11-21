@@ -4,14 +4,38 @@ import { HeatDot } from "../types";
 import { fmtDate } from "../utils";
 
 export default function Heatmap({ data }: { data: HeatDot[] }) {
-  const weeks = data.length / 7;
-  const matrix = Array.from({ length: weeks }, (_, w) =>
-    data.slice(w * 7, w * 7 + 7)
+  const MAX_WEEKS = 20;
+  const TOTAL_CELLS = MAX_WEEKS * 7;
+
+  // 현재 데이터 길이
+  const len = data.length;
+
+  // data 길이가 140보다 작으면 앞쪽을 placeholder로 채움
+  const missing = TOTAL_CELLS - len;
+
+  // 🔹 HeatDot 타입 맞춰서 placeholder 생성 (date는 Date 객체로!)
+  const placeholder: HeatDot[] = Array.from({ length: missing }, (_, i) => ({
+    date: new Date(0 + i), // 의미 없는 가장 옛날 날짜. title로 보이지도 않음.
+    value: 0,              // 회색 블록
+    visited: false
+  }));
+
+  // 🔹 fullGrid = placeholder + 실제 데이터
+  const fullGrid = [...placeholder, ...data];
+
+  // 🔹 열(week) 단위로 잘라서 matrix 생성
+  const matrix = Array.from({ length: MAX_WEEKS }, (_, w) =>
+    fullGrid.slice(w * 7, w * 7 + 7)
   );
 
   const color = (v: number) =>
-    ["bg-neutral-200", "bg-green-200", "bg-green-300", "bg-green-400", "bg-green-500"][v] ||
-    "bg-neutral-200";
+    [
+      "bg-neutral-200", // 0
+      "bg-green-200",   // 1
+      "bg-green-300",   // 2
+      "bg-green-400",   // 3
+      "bg-green-500"    // 4
+    ][v] || "bg-neutral-200";
 
   return (
     <div className="flex gap-1 overflow-x-auto pb-1">
