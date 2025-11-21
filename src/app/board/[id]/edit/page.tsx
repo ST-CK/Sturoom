@@ -31,41 +31,55 @@ export default function EditPostPage() {
     })();
   }, [id, router]);
 
-  if (!post) return <section className="p-6">불러오는 중…</section>;
+  if (!post) {
+    return (
+      <section className="p-6 text-sm sm:text-base">
+        불러오는 중…
+      </section>
+    );
+  }
 
   return (
-    <section className="mx-auto w-full max-w-4xl px-4 pb-5 pt-10">
-      <h1 className="mb-6 text-2xl font-bold">글 수정</h1>
+    <section className="mx-auto w-full max-w-4xl px-4 sm:px-6 pb-5 pt-8 sm:pt-10">
+      <h1 className="mb-6 text-xl sm:text-2xl font-bold">글 수정</h1>
 
       <div className="space-y-4">
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="w-full border-b py-3 text-xl font-semibold outline-none"
+          className="w-full border-b py-3 text-lg sm:text-xl font-semibold outline-none"
           placeholder="제목"
         />
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
           rows={10}
-          className="w-full rounded-md border p-3 text-sm"
+          className="w-full rounded-md border p-3 text-sm sm:text-base"
           placeholder="내용"
         />
-        <div className="flex items-center gap-4">
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={isPinned} onChange={(e) => setIsPinned(e.target.checked)} />
+        <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm">
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={isPinned}
+              onChange={(e) => setIsPinned(e.target.checked)}
+            />
             상단 고정
           </label>
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={isAnonymous} onChange={(e) => setIsAnonymous(e.target.checked)} />
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={isAnonymous}
+              onChange={(e) => setIsAnonymous(e.target.checked)}
+            />
             익명
           </label>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 sm:justify-end">
           <button
             onClick={() => history.back()}
-            className="rounded-md border px-4 py-2 text-sm"
+            className="w-full sm:w-auto rounded-md border px-4 py-2 text-sm"
           >
             취소
           </button>
@@ -73,14 +87,19 @@ export default function EditPostPage() {
             onClick={async () => {
               try {
                 setSaving(true);
-                await boardRepo.update(post.id, { title, content, isPinned, isAnonymous });
+                await boardRepo.update(post.id, {
+                  title,
+                  content,
+                  isPinned,
+                  isAnonymous,
+                });
                 router.replace(`/board/${post.id}`);
               } finally {
                 setSaving(false);
               }
             }}
             disabled={saving || !title.trim() || !content.trim()}
-            className="rounded-md bg-indigo-600 px-4 py-2 text-sm text-white"
+            className="w-full sm:w-auto rounded-md bg-indigo-600 px-4 py-2 text-sm text-white disabled:opacity-70"
           >
             {saving ? "저장 중…" : "저장"}
           </button>

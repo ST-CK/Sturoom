@@ -73,49 +73,48 @@ export default function QuizChat() {
         return;
       }
 
-    const parsed = (data || [])
-      .map((m: any) => {
-        // 카드 종류는 DB에 안 쓰기로 했으니 혹시 있어도 무시
-        if (m.kind === "card") return null;
+      const parsed = (data || [])
+        .map((m: any) => {
+          // 카드 종류는 DB에 안 쓰기로 했으니 혹시 있어도 무시
+          if (m.kind === "card") return null;
 
-        let content: QuizPayload = {};
-        try {
-          content =
-            typeof m.payload === "string"
-              ? (JSON.parse(m.payload) as QuizPayload)
-              : (m.payload as QuizPayload);
-        } catch {
-          content = { text: String(m.payload) };
-        }
+          let content: QuizPayload = {};
+          try {
+            content =
+              typeof m.payload === "string"
+                ? (JSON.parse(m.payload) as QuizPayload)
+                : (m.payload as QuizPayload);
+          } catch {
+            content = { text: String(m.payload) };
+          }
 
-        // 예전 형식: { quiz: [ { question, choices }, ... ] } → 이런 건 무시
-        if (Array.isArray(content.quiz)) {
+          // 예전 형식: { quiz: [ { question, choices }, ... ] } → 이런 건 무시
+          if (Array.isArray(content.quiz)) {
+            return null;
+          }
+
+          if (m.kind === "quiz") {
+            return {
+              id: m.id,
+              role: "ai",
+              kind: "quiz",
+              question: content.question ?? "문제 로드 오류",
+              options: content.choices ?? [],
+            };
+          }
+
+          if (m.kind === "text") {
+            return {
+              id: m.id,
+              role: m.role, // user / ai 그대로
+              kind: "text",
+              text: content.text ?? "",
+            };
+          }
+
           return null;
-        }
-
-        if (m.kind === "quiz") {
-          return {
-            id: m.id,
-            role: "ai",
-            kind: "quiz",
-            question: content.question ?? "문제 로드 오류",
-            options: content.choices ?? [],
-          };
-        }
-
-        if (m.kind === "text") {
-          return {
-            id: m.id,
-            role: m.role, // user / ai 그대로
-            kind: "text",
-            text: content.text ?? "",
-          };
-        }
-
-        return null;
-      })
-
-  .filter(Boolean);
+        })
+        .filter(Boolean);
 
       setMessages(parsed);
     }
@@ -427,14 +426,14 @@ export default function QuizChat() {
    * 7. 렌더링
    * ------------------------------------- */
   return (
-    <div className="h-full flex flex-col overflow-hidden relative">
+    <div className="h-full flex flex-col overflow-hidden relative text-xs sm:text-sm">
       {loading && (
         <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center z-50">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600" />
-          <p className="mt-4 text-slate-700 font-semibold">
+          <div className="animate-spin rounded-full h-8 w-8 sm:h-10 sm:w-10 border-b-2 border-indigo-600" />
+          <p className="mt-4 text-slate-700 font-semibold text-sm sm:text-base">
             AI가 퀴즈를 생성 중입니다...
           </p>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
             잠시만 기다려 주세요 🤖
           </p>
         </div>
@@ -452,13 +451,15 @@ export default function QuizChat() {
 
         <Panel>
           <div className="flex flex-col h-full bg-gradient-to-br from-slate-50 via-white to-slate-100">
-            <header className="h-14 bg-white/70 backdrop-blur-md flex items-center px-6 shadow-sm">
-              <h1 className="font-semibold text-lg text-slate-800">AI 퀴즈</h1>
+            <header className="h-12 sm:h-14 bg-white/70 backdrop-blur-md flex items-center px-4 sm:px-6 shadow-sm">
+              <h1 className="font-semibold text-base sm:text-lg text-slate-800">
+                AI 퀴즈
+              </h1>
             </header>
 
             <div
               ref={chatScrollRef}
-              className="flex-1 overflow-y-auto px-6 py-6 space-y-4"
+              className="flex-1 overflow-y-auto px-3 py-4 sm:px-6 sm:py-6 space-y-3 sm:space-y-4"
             >
               {/* 채팅 메시지들 */}
               {messages.map((m, i) => {
@@ -466,9 +467,11 @@ export default function QuizChat() {
                   return (
                     <ChatMessage key={i} role="ai">
                       <div>
-                        <p className="font-medium">{m.question}</p>
+                        <p className="font-medium text-sm sm:text-base">
+                          {m.question}
+                        </p>
                         {!!m.options?.length && (
-                          <ul className="mt-2 text-sm text-slate-700 space-y-1">
+                          <ul className="mt-2 text-xs sm:text-sm text-slate-700 space-y-1">
                             {m.options.map((opt: string, k: number) => (
                               <li key={k}>
                                 {String.fromCharCode(65 + k)}. {opt}

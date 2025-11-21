@@ -9,7 +9,11 @@ export default function Sparkline({ data }: { data: number[] }) {
   return (
     <svg
       viewBox="0 0 100 100"
-      className="h-8 w-24"
+      className="
+        h-8 w-24
+        /* 📱 모바일에서 조금 더 크게 */
+        sm:h-10 sm:w-28
+      "
       preserveAspectRatio="none"
     >
       <polyline

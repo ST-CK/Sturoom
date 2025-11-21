@@ -110,7 +110,7 @@ export default function SideBar({
             홈
           </Link>
 
-          <Link href="/#guide" onClick={onClose} className="flex items-center gap-2 rounded-lg pl-2 pr-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+          <Link href="/guide" onClick={onClose} className="flex items-center gap-2 rounded-lg pl-2 pr-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
             <HelpCircle className="h-4 w-4" />
             사용팁
           </Link>

@@ -75,20 +75,22 @@ export default function SupabaseTestPage() {
   }
 
   return (
-    <div className="max-w-xl mx-auto p-6 space-y-4">
-      <h1 className="text-2xl font-bold">Supabase 연결 테스트 (클라이언트 전용)</h1>
+    <div className="max-w-xl mx-auto min-h-screen bg-gray-50 px-4 py-6 sm:p-6 space-y-4">
+      <h1 className="text-xl sm:text-2xl font-bold">
+        Supabase 연결 테스트 (클라이언트 전용)
+      </h1>
 
-      <div className="flex gap-2">
+      <div className="flex flex-col sm:flex-row gap-2">
         <input
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="메시지 입력 (200자 이내)"
-          className="flex-1 border rounded px-3 py-2"
+          className="flex-1 border rounded px-3 py-2 text-sm"
         />
         <button
           onClick={add}
           disabled={loading}
-          className="rounded px-4 py-2 bg-black text-white disabled:opacity-50"
+          className="rounded px-4 py-2 bg-black text-white disabled:opacity-50 w-full sm:w-auto"
         >
           {loading ? "추가중..." : "추가"}
         </button>
@@ -101,13 +103,15 @@ export default function SupabaseTestPage() {
       )}
 
       <ul className="space-y-2">
-        {messages.length === 0 && <li className="opacity-60">메시지가 없어요.</li>}
+        {messages.length === 0 && (
+          <li className="opacity-60 text-sm">메시지가 없어요.</li>
+        )}
         {messages.map((m) => (
-          <li key={m.id} className="border rounded p-3">
+          <li key={m.id} className="border rounded p-3 bg-white">
             <div className="text-xs opacity-60">
               {new Date(m.inserted_at).toLocaleString()}
             </div>
-            <div>{m.content}</div>
+            <div className="text-sm mt-1 break-words">{m.content}</div>
           </li>
         ))}
       </ul>

@@ -16,7 +16,9 @@ export default function OnboardingPage() {
 
   useEffect(() => {
     (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return (window.location.href = "/login");
       setEmail(user.email ?? "");
       const meta: any = (user as any).user_metadata || {};
@@ -26,10 +28,15 @@ export default function OnboardingPage() {
   }, []);
 
   const gradeHint =
-    school.kind?.includes("초") ? "1~6" :
-    school.kind?.includes("중") ? "1~3" :
-    school.kind?.includes("고") ? "1~3" :
-    school.kind?.includes("대") ? "1~4" : "예: 1";
+    school.kind?.includes("초")
+      ? "1~6"
+      : school.kind?.includes("중")
+      ? "1~3"
+      : school.kind?.includes("고")
+      ? "1~3"
+      : school.kind?.includes("대")
+      ? "1~4"
+      : "예: 1";
 
   const handleSave = async () => {
     setErr(null);
@@ -39,7 +46,9 @@ export default function OnboardingPage() {
 
     setSaving(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("로그인이 필요합니다.");
 
       await supabase.from("profiles").upsert({
@@ -61,24 +70,41 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50">
-      <div className="w-full max-w-md rounded-2xl border bg-white p-8 shadow-sm">
-        <h1 className="text-center text-2xl font-bold">추가 정보 입력</h1>
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-8">
+      <div className="w-full max-w-md rounded-2xl border bg-white p-6 shadow-sm sm:p-8">
+        <h1 className="text-center text-xl font-bold sm:text-2xl">
+          추가 정보 입력
+        </h1>
 
         <div className="mt-6 space-y-5">
           {/* 역할 */}
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">역할</label>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              역할
+            </label>
             <div className="grid grid-cols-3 gap-2">
               {[
                 { v: "parent", t: "학부모" },
                 { v: "student", t: "학생" },
                 { v: "teacher", t: "교사·교수" },
               ].map((o) => (
-                <label key={o.v} className={`flex items-center justify-center rounded-xl border px-3 py-2 text-sm cursor-pointer
-                  ${role === o.v ? "border-indigo-500 bg-indigo-50" : "border-gray-300 bg-white"}`}>
-                  <input type="radio" className="hidden" name="role" value={o.v}
-                    checked={role === (o.v as any)} onChange={() => setRole(o.v as any)} />
+                <label
+                  key={o.v}
+                  className={`flex cursor-pointer items-center justify-center rounded-xl border px-2 py-2 text-xs sm:px-3 sm:text-sm
+                  ${
+                    role === o.v
+                      ? "border-indigo-500 bg-indigo-50"
+                      : "border-gray-300 bg-white"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    className="hidden"
+                    name="role"
+                    value={o.v}
+                    checked={role === (o.v as any)}
+                    onChange={() => setRole(o.v as any)}
+                  />
                   {o.t}
                 </label>
               ))}
@@ -87,44 +113,63 @@ export default function OnboardingPage() {
 
           {/* 학교 */}
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">학교 이름</label>
-            <SchoolSelect value={school.name} onChange={(v) => setSchool(v)} />
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              학교 이름
+            </label>
+            <SchoolSelect
+              value={school.name}
+              onChange={(v) => setSchool(v)}
+            />
           </div>
 
           {/* 학년 */}
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">학년</label>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              학년
+            </label>
             <input
               value={grade}
               onChange={(e) => setGrade(e.target.value)}
               placeholder={gradeHint}
-              className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+              className="w-full rounded-xl border border-gray-300 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 sm:px-4 sm:py-3"
             />
-            <p className="text-xs text-gray-500">교사/학부모는 비워도 됩니다.</p>
+            <p className="text-xs text-gray-500">
+              교사/학부모는 비워도 됩니다.
+            </p>
           </div>
 
           {/* 이름/이메일/전화 */}
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">이름</label>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              이름
+            </label>
             <input
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+              className="w-full rounded-xl border border-gray-300 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 sm:px-4 sm:py-3"
             />
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">이메일</label>
-            <input disabled value={email} className="w-full rounded-xl border bg-gray-100 px-4 py-3 text-gray-500" />
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              이메일
+            </label>
+            <input
+              disabled
+              value={email}
+              className="w-full rounded-xl border bg-gray-100 px-3 py-2 text-sm text-gray-500 sm:px-4 sm:py-3"
+            />
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">전화번호</label>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              전화번호
+            </label>
             <input
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="01012345678"
-              className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+              className="w-full rounded-xl border border-gray-300 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 sm:px-4 sm:py-3"
             />
           </div>
 
@@ -133,7 +178,7 @@ export default function OnboardingPage() {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="w-full rounded-xl bg-indigo-600 px-4 py-3 font-semibold text-white shadow-sm hover:bg-indigo-700 disabled:opacity-70"
+            className="w-full rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 disabled:opacity-70"
           >
             {saving ? "저장 중..." : "저장하고 계속하기"}
           </button>

@@ -29,25 +29,30 @@ export default function Comments({ postId }: { postId: string }) {
   }
 
   return (
-    <div className="mt-4">
-      <h4 className="text-sm font-semibold">댓글</h4>
-      <ul className="mt-2 space-y-2">
+    <div className="mt-4 text-xs md:text-sm">
+      <h4 className="text-xs md:text-sm font-semibold">댓글</h4>
+
+      <ul className="mt-2 space-y-1.5 md:space-y-2">
         {comments.map((c) => (
-          <li key={c.id} className="rounded-md border p-2 text-sm">
+          <li
+            key={c.id}
+            className="rounded-md border p-2 text-xs md:text-sm"
+          >
             {c.content}
           </li>
         ))}
       </ul>
-      <div className="mt-2 flex gap-2">
+
+      <div className="mt-2 flex flex-col gap-2 sm:flex-row">
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
-          className="flex-1 rounded border px-2 py-1 text-sm"
+          className="flex-1 rounded border px-2 py-1 text-xs md:text-sm"
           placeholder="댓글 입력..."
         />
         <button
           onClick={handleAdd}
-          className="rounded bg-gray-900 px-3 py-1 text-white text-sm"
+          className="rounded bg-gray-900 px-3 py-1.5 text-xs md:text-sm text-white"
         >
           등록
         </button>

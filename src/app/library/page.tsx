@@ -97,13 +97,16 @@ export default function LibraryListPage() {
     setRooms((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
   };
 
-  // ✅ 로딩 중
+  // ✅ 로딩 중 (모바일 대응 포함)
   if (loading) {
     return (
-      <div className="mx-auto w-4/5 max-w-5xl py-8">
+      <div className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6">
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="animate-pulse rounded-xl border bg-gray-100 h-40" />
+            <div
+              key={i}
+              className="h-40 animate-pulse rounded-xl border bg-gray-100"
+            />
           ))}
         </div>
       </div>
@@ -111,14 +114,16 @@ export default function LibraryListPage() {
   }
 
   return (
-    <div className="mx-auto w-4/5 max-w-5xl py-8">
+    <div className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6">
       {/* 헤더 */}
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="px-1 text-2xl font-bold text-gray-800">내 강의자료실</h1>
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="px-1 text-xl font-bold text-gray-800 sm:text-2xl">
+          내 강의자료실
+        </h1>
         {(role === "admin" || role === "teacher") && (
           <button
             onClick={() => setShowAddModal(true)}
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white hover:bg-indigo-700 transition"
+            className="self-start rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white transition hover:bg-indigo-700 sm:self-auto"
           >
             + 수업 추가
           </button>
@@ -127,8 +132,8 @@ export default function LibraryListPage() {
 
       {/* 본문 */}
       {rooms.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 p-10 text-gray-500">
-          <p className="text-lg font-medium">
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 p-8 text-center text-gray-500 sm:p-10">
+          <p className="text-base font-medium sm:text-lg">
             {role === "student"
               ? "아직 초대받은 수업이 없습니다."
               : "등록된 수업이 없습니다."}
@@ -145,7 +150,6 @@ export default function LibraryListPage() {
               track={r.track}
               thumbnail={r.thumbnail}
               is_new={!!r.is_new}
-              // 교사/관리자만 수정 및 삭제 버튼 표시
               onEdit={
                 role === "admin" || role === "teacher"
                   ? (id) => {
@@ -177,7 +181,9 @@ export default function LibraryListPage() {
           room={editRoom}
           onClose={() => setEditRoom(null)}
           onUpdated={(updated) =>
-            setRooms((prev) => prev.map((r) => (r.id === updated.id ? updated : r)))
+            setRooms((prev) =>
+              prev.map((r) => (r.id === updated.id ? updated : r))
+            )
           }
         />
       )}
