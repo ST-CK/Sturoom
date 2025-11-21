@@ -71,20 +71,19 @@ export default function Header() {
             <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-purple-300 via-purple-400 to-teal-300" />
             <span className="text-lg font-semibold text-slate-800">Sturoom</span>
             <span className="flex items-center gap-1 text-sm">
-              <span className="rounded bg-blue-600 px-1.5 py-0.5 text-white text-xs font-semibold">
-                Beta
-              </span>
-              <span className="text-gray-400">v1.1.2</span>
             </span>
           </Link>
 
           {/* 💡 사용 팁 – 이제 모바일에서도 항상 보이게 */}
           <Link
             href="/guide"
-            className="inline-flex items-center gap-1 rounded-xl border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-100"
-          >
-            💡 사용 팁
-          </Link>
+            className="
+              inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-gray-50 
+              px-2 py-0.5 text-[11px]
+              sm:rounded-xl sm:px-3 sm:py-1.5 sm:text-sm
+              font-medium text-gray-700 hover:bg-gray-100">
+             💡 사용 팁
+        </Link>
         </div>
 
         {/* 오른쪽: 로그인/프로필 */}
@@ -92,18 +91,27 @@ export default function Header() {
           {/* 비로그인 */}
           {!loading && !user && (
             <>
-              <Link
-                href="/#cta"
-                className="rounded-xl px-3 py-1.5 text-sm font-semibold text-white bg-gradient-to-r from-gray-700 via-slate-600 to-blue-500 shadow-sm hover:opacity-90"
-              >
-                무료 체험
-              </Link>
-              <Link
-                href="/login"
-                className="rounded-xl border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-              >
-                로그인
-              </Link>
+        <Link
+          href="/#cta"
+          className="
+            rounded-lg 
+            px-2 py-0.5 text-[11px] 
+            sm:rounded-xl sm:px-3 sm:py-1.5 sm:text-sm
+            font-semibold text-white bg-gradient-to-r from-gray-700 via-slate-600 to-blue-500 
+            shadow-sm hover:opacity-90">
+             무료 체험
+        </Link>
+
+        <Link
+          href="/login"
+          className="
+            rounded-lg border border-gray-200 
+            px-2 py-0.5 text-[11px]
+            sm:rounded-xl sm:px-3 sm:py-1.5 sm:text-sm
+            font-medium text-gray-700 hover:bg-gray-50">
+             로그인
+        </Link>
+
             </>
           )}
 
