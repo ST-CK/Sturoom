@@ -121,15 +121,15 @@ export default function QuizCard({ onStart }: Props) {
   }
 
   return (
-    <div className="mx-auto w-full max-w-sm sm:max-w-md bg-white/90 backdrop-blur-md rounded-2xl shadow-lg p-4 sm:p-6 border border-slate-200/60">
-      <h3 className="text-lg sm:text-xl font-semibold text-center mb-4 text-slate-800">
+    <div className="mx-auto w-[380px] bg-white/90 backdrop-blur-md rounded-2xl shadow-lg p-6 border border-slate-200/60">
+      <h3 className="text-xl font-semibold text-center mb-4 text-slate-800">
         📘 AI 퀴즈 생성기
       </h3>
 
       <div className="space-y-4">
         {/* 🔸 강의 선택 */}
         <select
-          className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-base"
+          className="w-full border border-slate-300 rounded-lg px-3 py-2"
           value={lectureId}
           onChange={(e) => setLectureId(e.target.value)}
         >
@@ -143,7 +143,7 @@ export default function QuizCard({ onStart }: Props) {
 
         {/* 🔸 주차 선택 */}
         <select
-          className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-base"
+          className="w-full border border-slate-300 rounded-lg px-3 py-2"
           value={weekId}
           onChange={(e) => setWeekId(e.target.value)}
           disabled={!lectureId}
@@ -157,13 +157,13 @@ export default function QuizCard({ onStart }: Props) {
         </select>
 
         {/* 🔸 모드 선택 */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="grid grid-cols-4 gap-2">
           {(["multiple", "ox", "short", "mixed"] as const).map((m) => (
             <button
               key={m}
               onClick={() => setMode(m)}
               type="button"
-              className={`rounded-lg px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm border transition ${
+              className={`rounded-lg px-3 py-2 text-sm border transition ${
                 mode === m
                   ? "border-indigo-500 bg-indigo-50 text-indigo-700 font-semibold"
                   : "border-slate-200 hover:bg-slate-50 text-slate-700"
@@ -184,7 +184,7 @@ export default function QuizCard({ onStart }: Props) {
         <button
           disabled={loading}
           onClick={handleStart}
-          className={`w-full mt-3 rounded-lg py-2 text-sm sm:text-base font-semibold text-white transition ${
+          className={`w-full mt-3 rounded-lg py-2 font-semibold text-white transition ${
             loading
               ? "bg-gray-400 cursor-not-allowed"
               : "bg-indigo-600 hover:bg-indigo-700"
