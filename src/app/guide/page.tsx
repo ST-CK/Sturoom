@@ -14,7 +14,7 @@ type GuideId =
 
 const SECTIONS: {
   groupTitle: string;
-  items: { id: GuideId; label: string };
+  items: { id: GuideId; label: string }[]; // ✅ items를 배열 타입으로 수정
 }[] = [
   {
     groupTitle: "사용법 관리",
@@ -200,8 +200,6 @@ export default function GuidePage() {
 
             {/* 이미지 / 캡처 들어갈 카드 */}
             <div className="rounded-3xl border bg-white p-4 md:p-6 shadow-sm">
-              {/* 이 부분에 나중에 실제 캡처 이미지를 넣으면 됨 */}
-              {/* 예: <img src="/images/guide-chatbot.png" alt="챗봇 튜터 화면" className="w-full rounded-2xl" /> */}
               <div className="mb-3 aspect-video w-full overflow-hidden rounded-2xl bg-gradient-to-br from-sky-100 via-white to-indigo-100 flex items-center justify-center">
                 <span className="text-sm md:text-base text-gray-500">
                   여기에는 웹 캡처 이미지를 넣을 예정입니다.
