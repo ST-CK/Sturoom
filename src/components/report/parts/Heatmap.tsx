@@ -14,13 +14,23 @@ export default function Heatmap({ data }: { data: HeatDot[] }) {
     "bg-neutral-200";
 
   return (
-    <div className="flex gap-1 overflow-x-auto pb-1">
+    <div
+      className="
+        flex gap-1 overflow-x-auto pb-1
+        /* 📱 모바일 대응 */
+        sm:gap-1.5 sm:pb-2
+      "
+    >
       {matrix.map((col, i) => (
-        <div key={i} className="flex flex-col gap-1">
+        <div key={i} className="flex flex-col gap-1 sm:gap-1.5">
           {col.map((d, j) => (
             <div
               key={`${i}-${j}`}
-              className={`h-3 w-3 rounded-sm ${color(d.value)}`}
+              className={`
+                rounded-sm ${color(d.value)}
+                /* 기본(PC) */ h-3 w-3
+                /* 📱 모바일 크기 증가 */ sm:h-4 sm:w-4
+              `}
               title={fmtDate(d.date)}
             />
           ))}

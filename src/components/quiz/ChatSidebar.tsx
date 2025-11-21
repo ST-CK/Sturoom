@@ -47,7 +47,9 @@ export default function ChatSidebar({ selectedSessionId, onSelect }: Props) {
     }
 
     // quiz_count=0 은 '완전 빈 세션' → 숨김 처리
-    const filtered = (data || []).filter((s: Session) => (s.quiz_count ?? 0) > 0);
+    const filtered = (data || []).filter(
+      (s: Session) => (s.quiz_count ?? 0) > 0
+    );
     setSessions(filtered as Session[]);
   }
 
@@ -77,16 +79,18 @@ export default function ChatSidebar({ selectedSessionId, onSelect }: Props) {
   }, []);
 
   return (
-    <div className="h-full flex flex-col bg-white border-r border-slate-200">
+    <div className="h-full flex flex-col bg-white border-r border-slate-200 text-xs sm:text-sm">
       {/* 헤더 */}
-      <div className="h-12 flex items-center px-4 border-b border-slate-200 bg-slate-50/80 backdrop-blur-md">
-        <h2 className="font-semibold text-slate-700">AI 퀴즈 기록</h2>
+      <div className="h-10 sm:h-12 flex items-center px-3 sm:px-4 border-b border-slate-200 bg-slate-50/80 backdrop-blur-md">
+        <h2 className="font-semibold text-slate-700 text-sm sm:text-base">
+          AI 퀴즈 기록
+        </h2>
       </div>
 
       {/* 세션 리스트 */}
       <div className="flex-1 overflow-y-auto">
         {sessions.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-slate-400 text-sm">
+          <div className="flex flex-col items-center justify-center h-full text-slate-400 text-xs sm:text-sm px-4 text-center">
             저장된 세션이 없습니다.
           </div>
         ) : (
@@ -99,9 +103,7 @@ export default function ChatSidebar({ selectedSessionId, onSelect }: Props) {
                 ? `${s.week_number}주차`
                 : "주차 정보 없음";
               const modeLabel =
-                modeMap[s.mode ?? ""] ??
-                s.mode?.toUpperCase() ??
-                "MODE";
+                modeMap[s.mode ?? ""] ?? s.mode?.toUpperCase() ?? "MODE";
 
               const title = `${lectureTitle} · ${weekLabel} · ${modeLabel}`;
               const time = format(
@@ -115,19 +117,23 @@ export default function ChatSidebar({ selectedSessionId, onSelect }: Props) {
                   key={s.id}
                   onClick={() => onSelect?.(s.id)}
                   className={`
-                    px-4 py-3 cursor-pointer transition
+                    px-3 py-2.5 sm:px-4 sm:py-3 
+                    cursor-pointer transition
                     ${isSelected ? "bg-indigo-100" : "hover:bg-indigo-50"}
                   `}
                 >
                   <div
                     className={`
                       font-medium truncate
+                      text-xs sm:text-sm
                       ${isSelected ? "text-indigo-700" : "text-indigo-600"}
                     `}
                   >
                     {title}
                   </div>
-                  <div className="text-xs text-slate-500 mt-0.5">{time}</div>
+                  <div className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
+                    {time}
+                  </div>
                 </li>
               );
             })}
@@ -136,12 +142,12 @@ export default function ChatSidebar({ selectedSessionId, onSelect }: Props) {
       </div>
 
       {/* 새 퀴즈 버튼 */}
-      <div className="p-3 border-t border-slate-200">
+      <div className="p-2.5 sm:p-3 border-t border-slate-200">
         <button
           onClick={() => window.location.reload()}
           className="
             w-full rounded-lg bg-indigo-600 hover:bg-indigo-700
-            text-white text-sm py-2 font-medium transition
+            text-white text-xs sm:text-sm py-1.5 sm:py-2 font-medium transition
           "
         >
           + 새 퀴즈 시작

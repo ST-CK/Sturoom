@@ -14,7 +14,7 @@ type GuideId =
 
 const SECTIONS: {
   groupTitle: string;
-  items: { id: GuideId; label: string };
+  items: { id: GuideId; label: string }[];
 }[] = [
   {
     groupTitle: "사용법 관리",
@@ -127,31 +127,30 @@ export default function GuidePage() {
 
   return (
     <section className="bg-gray-50 min-h-screen">
-      <Container className="py-8 md:py-10">
+      <Container className="py-8 md:py-10 px-4">
         {/* 제목 영역 */}
         <header className="mb-6 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold">사용 가이드</h1>
-            <p className="text-sm md:text-base text-gray-600 mt-1">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">
+              사용 가이드
+            </h1>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600 mt-1">
               Sturoom의 주요 기능을 한 눈에 정리한 안내 페이지입니다.
             </p>
           </div>
         </header>
 
-        {/* 레이아웃: 좌측 사이드바 + 우측 컨텐츠 */}
-        <div className="flex flex-col gap-6 md:flex-row">
+        {/* 레이아웃 */}
+        <div className="flex flex-col md:flex-row gap-6">
+
           {/* 사이드바 */}
           <aside className="w-full md:w-64 lg:w-72 shrink-0">
             <div className="rounded-2xl border bg-white p-3 shadow-sm">
               {SECTIONS.map((group) => (
-                <div key={group.groupTitle} className="mb-2 last:mb-0">
-                  <button
-                    type="button"
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm font-semibold text-gray-800 hover:bg-gray-50"
-                  >
-                    <span>{group.groupTitle}</span>
-                    <span className="text-xs text-gray-400">▾</span>
-                  </button>
+                <div key={group.groupTitle} className="mb-3 last:mb-0">
+                  <div className="flex items-center justify-between px-3 py-2 text-sm font-semibold">
+                    {group.groupTitle}
+                  </div>
                   <div className="mt-1 space-y-1">
                     {group.items.map((item) => {
                       const active = item.id === selectedId;
@@ -178,38 +177,35 @@ export default function GuidePage() {
 
           {/* 메인 컨텐츠 */}
           <main className="flex-1">
-            {/* 제목 + 설명 박스 */}
             <div className="mb-6">
-              <h2 className="text-2xl md:text-3xl font-bold text-indigo-700 mb-3">
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-indigo-700 mb-3">
                 {content.title}
               </h2>
+
               <div className="rounded-2xl bg-indigo-50 px-4 py-3 mb-4">
-                <p className="text-sm md:text-base font-medium text-indigo-900">
+                <p className="text-sm sm:text-base font-medium text-indigo-900">
                   {content.subtitle}
                 </p>
-                <p className="mt-1 text-xs md:text-sm text-indigo-900/80">
+                <p className="mt-1 text-xs sm:text-sm text-indigo-900/80">
                   {content.description}
                 </p>
               </div>
-              <ul className="list-disc pl-5 space-y-1 text-sm md:text-base text-gray-700">
+
+              <ul className="list-disc pl-4 sm:pl-5 space-y-1 text-sm sm:text-base text-gray-700">
                 {content.bullets.map((b) => (
                   <li key={b}>{b}</li>
                 ))}
               </ul>
             </div>
 
-            {/* 이미지 / 캡처 들어갈 카드 */}
-            <div className="rounded-3xl border bg-white p-4 md:p-6 shadow-sm">
-              {/* 이 부분에 나중에 실제 캡처 이미지를 넣으면 됨 */}
-              {/* 예: <img src="/images/guide-chatbot.png" alt="챗봇 튜터 화면" className="w-full rounded-2xl" /> */}
+            <div className="rounded-3xl border bg-white p-4 sm:p-6 shadow-sm">
               <div className="mb-3 aspect-video w-full overflow-hidden rounded-2xl bg-gradient-to-br from-sky-100 via-white to-indigo-100 flex items-center justify-center">
-                <span className="text-sm md:text-base text-gray-500">
+                <span className="text-xs sm:text-sm md:text-base text-gray-500">
                   여기에는 웹 캡처 이미지를 넣을 예정입니다.
                 </span>
               </div>
-              <p className="text-xs md:text-sm text-gray-500">
-                ※ 실제 서비스 배포 시, 위 영역에 해당 기능 화면(메인 페이지, 강의실,
-                리포트 작성 화면 등)의 스크린샷을 넣어 설명과 함께 보여주면 좋습니다.
+              <p className="text-xs sm:text-sm text-gray-500">
+                ※ 실제 서비스 배포 시, 해당 기능 화면의 스크린샷을 넣어 설명과 함께 보여주면 좋습니다.
               </p>
             </div>
           </main>

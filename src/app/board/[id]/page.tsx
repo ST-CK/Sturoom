@@ -32,23 +32,50 @@ export default function DetailPage() {
     }
   };
 
-  useEffect(() => { reload(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [id]);
+  // 초기 로딩
+  useEffect(() => {
+    reload();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
-  if (loading) return <section className="p-6">불러오는 중…</section>;
-  if (!post) return <section className="p-6">존재하지 않는 게시글입니다.</section>;
+  if (loading)
+    return <section className="p-4 sm:p-6 text-sm sm:text-base">불러오는 중…</section>;
+  if (!post)
+    return (
+      <section className="p-4 sm:p-6 text-sm sm:text-base">
+        존재하지 않는 게시글입니다.
+      </section>
+    );
 
   const me = user?.email ?? "demo@sturoom.dev";
 
   return (
-    <section className="min-h-[100svh] px-4 pb-5 pt-10">
+    <section className="
+      min-h-[100svh] 
+      px-4 sm:px-6 
+      pb-5 pt-8 sm:pt-10
+      max-w-4xl mx-auto
+    ">
       <BoardDetail
         post={post}
         comments={comments}
         attachments={attachments}
-        onLike={async () => { await boardRepo.toggleLike(post.id, me); reload(); }}
-        onTogglePin={async () => { await boardRepo.update(post.id, { isPinned: !post.isPinned }); reload(); }}
-        onDelete={async () => { await boardRepo.remove(post.id); router.replace("/board"); }}
-        onAddComment={async (text) => { await boardRepo.addComment(post.id, me, text); reload(); }}
+        onLike={async () => {
+          await boardRepo.toggleLike(post.id, me);
+          reload();
+        }}
+        onTogglePin={async () => {
+          await boardRepo.update(post.id, { isPinned: !post.isPinned });
+          reload();
+        }}
+        onDelete={async () => {
+          await boardRepo.remove(post.id);
+          router.replace("/board");
+        }}
+        onAddComment={async (text) => {
+          await boardRepo.addComment(post.id, me, text);
+          reload();
+        }}
       />
     </section>
   );

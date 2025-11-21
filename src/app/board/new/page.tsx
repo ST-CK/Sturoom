@@ -15,8 +15,16 @@ export default function NewPostPage() {
   const meName  = profile?.full_name ?? "사용자";
 
   return (
-    <section className="mx-auto w-full max-w-4xl px-4 pb-5 pt-10">
-      <h1 className="mb-6 text-2xl font-bold">새 글 작성</h1>
+    <section
+      className="
+        w-full mx-auto 
+        max-w-4xl 
+        px-4 sm:px-6 
+        pt-10 sm:pt-12 
+        pb-5
+      "
+    >
+      <h1 className="mb-6 text-2xl sm:text-3xl font-bold">새 글 작성</h1>
 
       <BoardForm
         authorEmail={meEmail}
@@ -26,7 +34,8 @@ export default function NewPostPage() {
           try {
             setSaving(true);
             const id = await boardRepo.create({
-              title, content,
+              title,
+              content,
               authorEmail: meEmail,
               authorName: meName,
               isAnonymous,

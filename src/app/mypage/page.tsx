@@ -262,11 +262,11 @@ export default function MyPage() {
   })();
 
   return (
-    <div className="mx-auto max-w-3xl p-6">
+    <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 sm:py-8">
       {/* 상단 프로필 헤더 */}
       <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
         <div className="absolute inset-0 -z-10 bg-gradient-to-r from-indigo-50 via-fuchsia-50 to-teal-50" />
-        <div className="flex items-center gap-4 p-6">
+        <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:gap-4 sm:p-6">
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-sky-500 text-base font-extrabold text-white shadow">
             {initials}
           </div>
@@ -276,7 +276,7 @@ export default function MyPage() {
             </h1>
             <p className="truncate text-sm text-slate-600">{email}</p>
           </div>
-          <div className="ml-auto hidden gap-2 sm:flex">
+          <div className="mt-2 flex gap-2 sm:ml-auto sm:mt-0 sm:flex hidden">
             <Link
               href="/reset-password"
               className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
@@ -295,13 +295,13 @@ export default function MyPage() {
 
       {/* 폼 카드 */}
       <div className="mt-6 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-200 bg-slate-50/60 px-6 py-4">
+        <div className="border-b border-slate-200 bg-slate-50/60 px-4 py-4 sm:px-6">
           <h2 className="text-base font-semibold text-slate-800">회원 정보 관리</h2>
           <p className="mt-0.5 text-xs text-slate-500">이름/역할/학교/전화번호를 수정할 수 있어요.</p>
         </div>
 
-        <div className="p-6">
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <div className="px-4 py-5 sm:p-6">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
             {/* 이메일 (읽기 전용) */}
             <div className="sm:col-span-2">
               <label className="mb-1 block text-sm font-medium text-slate-700">이메일</label>
@@ -358,7 +358,9 @@ export default function MyPage() {
                   <option value="parent">학부모</option>
                   <option value="teacher">교사</option>
                 </select>
-                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">▼</span>
+                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+                  ▼
+                </span>
               </div>
             </div>
 
@@ -427,7 +429,7 @@ export default function MyPage() {
             </Link>
             <button
               onClick={onSignOut}
-              className="ml-auto rounded-2xl border border-slate-200 bg-white px-6 py-3 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+              className="ml-auto hidden rounded-2xl border border-slate-200 bg-white px-6 py-3 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 sm:inline-flex"
             >
               로그아웃
             </button>
@@ -437,22 +439,22 @@ export default function MyPage() {
 
       {/* ===== 시간표 섹션 ===== */}
       <div className="mt-8 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50/60 px-6 py-4">
+        <div className="flex flex-col gap-2 border-b border-slate-200 bg-slate-50/60 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <div>
             <h2 className="text-base font-semibold text-slate-800">내 시간표</h2>
           </div>
           <div className="flex items-center gap-2">
-            <button className="px-3 py-2 rounded-xl border" onClick={() => setShowForm(true)}>
+            <button className="px-3 py-2 rounded-xl border text-sm" onClick={() => setShowForm(true)}>
               + 수업 추가
             </button>
           </div>
         </div>
 
-        <div className="p-2">
+        <div className="p-3 sm:p-4">
           {ttLoading || !timetable ? (
             <div className="p-6 text-sm text-slate-600">시간표 불러오는 중…</div>
           ) : (
-            <div className="rounded-2xl border bg-white p-2">
+            <div className="rounded-2xl border bg-white p-2 sm:p-3">
               <TimetableGrid
                 stage={form.education_stage}
                 entries={entries}
@@ -471,13 +473,16 @@ export default function MyPage() {
       {/* 수업 추가/수정 모달 */}
       {showForm && (
         <div
-          className="fixed inset-0 bg-black/30 flex items-center justify-center p-4 z-50"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4"
           onClick={() => {
             setShowForm(false);
             setEditing(null);
           }}
         >
-          <div className="w-full max-w-2xl rounded-2xl bg-white shadow-xl" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="w-full max-w-2xl rounded-2xl bg-white shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between px-4 pt-4">
               <h2 className="text-lg font-semibold">{editing ? "수업 수정" : "수업 추가"}</h2>
               <button
@@ -505,11 +510,13 @@ export default function MyPage() {
 
       {/* 위험 구역 */}
       <div className="mt-6 overflow-hidden rounded-3xl border border-rose-200 bg-rose-50/70 shadow-sm">
-        <div className="border-b border-rose-200 px-6 py-3">
+        <div className="border-b border-rose-200 px-4 py-3 sm:px-6">
           <h3 className="text-sm font-semibold text-rose-700">위험 구역</h3>
         </div>
-        <div className="p-6">
-          <p className="text-sm text-rose-700">탈퇴는 복구할 수 없습니다. (관리자 승인 또는 별도 프로세스 필요)</p>
+        <div className="px-4 py-5 sm:p-6">
+          <p className="text-sm text-rose-700">
+            탈퇴는 복구할 수 없습니다. (관리자 승인 또는 별도 프로세스 필요)
+          </p>
           <div className="mt-3">
             <button
               disabled
