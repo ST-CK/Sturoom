@@ -6,6 +6,8 @@ export type PresenceMetrics = {
   avg7Min: number;
   weekMin: number;
   trend: number[];
+  currentStreak: number;
+  bestStreak: number;
 };
 
 export type StudyMetrics = {
