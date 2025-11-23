@@ -55,11 +55,11 @@ export default function QuizRetryCard({ sessionId, onRetry }: Props) {
   return (
     <div className="mx-auto w-[350px] bg-white/90 backdrop-blur-md rounded-2xl shadow-lg p-6 border border-slate-200/60 animate-[fadeIn_0.25s_ease]">
       <h3 className="text-lg font-semibold text-center mb-2 text-slate-800">
-        🔁 기존 세션 퀴즈 재도전
+        🔁 퀴즈 다시 풀어보기
       </h3>
       <p className="text-center text-sm text-slate-600 mb-4 leading-relaxed">
         이 채팅방에서 새 퀴즈를 이어서 생성합니다.<br />
-        세션은 그대로 유지되고 새로운 퀴즈만 추가됩니다.
+        강의자료와 문제 형식을 그대로 이어갑니다.
       </p>
 
       <button

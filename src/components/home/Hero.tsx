@@ -3,10 +3,10 @@ import Container from "../layout/Container";
 export default function Hero() {
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-white to-indigo-50">
-      <Container className="grid grid-cols-1 items-center gap-10 py-16 md:grid-cols-2 md:py-24">
+      <Container className="grid grid-cols-1 items-center gap-10 py-10 sm:py-12 md:grid-cols-2 md:py-16 lg:py-24">
         
         {/* LEFT TEXT */}
-        <div>
+        <div className="text-center md:text-left">
           <p className="mb-3 inline-block rounded-full border border-indigo-200 bg-white px-3 py-1 text-xs font-medium text-indigo-700">
             나만의 AI 학습 파트너
           </p>
@@ -54,7 +54,6 @@ export default function Hero() {
             <div className="h-3 w-1/3 rounded bg-gray-200" />
           </div>
         </div>
-
       </Container>
     </section>
   );

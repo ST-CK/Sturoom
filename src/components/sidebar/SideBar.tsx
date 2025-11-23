@@ -110,7 +110,7 @@ export default function SideBar({
             홈
           </Link>
 
-          <Link href="/#guide" onClick={onClose} className="flex items-center gap-2 rounded-lg pl-2 pr-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+          <Link href="/guide" onClick={onClose} className="flex items-center gap-2 rounded-lg pl-2 pr-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
             <HelpCircle className="h-4 w-4" />
             사용팁
           </Link>
@@ -135,27 +135,17 @@ export default function SideBar({
 
           <Link href="/report" onClick={onClose} className="flex items-center gap-2 rounded-lg pl-2 pr-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
             <BarChart3 className="h-4 w-4" />
-            리포트
+            AI 리포트
           </Link>
 
           <Link href="/lank" onClick={onClose} className="flex items-center gap-2 rounded-lg pl-2 pr-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
             <Trophy className="h-4 w-4" />
               나의 랭킹
-            </Link>
+          </Link>
 
           <Link href="/board" onClick={onClose} className="flex items-center gap-2 rounded-lg pl-2 pr-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
             <MessageSquareText className="h-4 w-4" />
             게시판
-          </Link>
-
-          <Link href="/ai/learn" onClick={onClose} className="flex items-center gap-2 rounded-lg pl-2 pr-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
-            <Brain className="h-4 w-4" />
-            학습AI
-          </Link>
-
-          <Link href="/ai/focus" onClick={onClose} className="flex items-center gap-2 rounded-lg pl-2 pr-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
-            <Activity className="h-4 w-4" />
-            집중도AI
           </Link>
         </nav>
 

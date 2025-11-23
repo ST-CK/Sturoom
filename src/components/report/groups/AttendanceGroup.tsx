@@ -4,7 +4,6 @@ import Card from "../parts/Card";
 import Sparkline from "../parts/Sparkline";
 import Heatmap from "../parts/Heatmap";
 import { HeatDot, PresenceMetrics } from "../types";
-import { calcStreak } from "../utils";
 
 export default function AttendanceGroup({
   heat,
@@ -13,15 +12,20 @@ export default function AttendanceGroup({
   heat: HeatDot[];
   presence: PresenceMetrics;
 }) {
-  const { current, longest } = calcStreak(heat.map((h) => ({ visited: h.visited })));
+  // 👉 스트릭 관련 변수
+  const current = presence.currentStreak ?? 0;
+  const longest = presence.bestStreak ?? 0;
   const nextGoal = Math.max(0, longest - current + 1);
+
+  // 👉 🔥 "최근 X주" 자동 계산 (heat length 기준)
+  const weeks = Math.max(1, Math.ceil((heat?.length || 0) / 7));
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {/* 출석 캘린더 */}
+      {/* 출석 캘린더 (잔디) */}
       <Card title="출석 캘린더 (잔디)">
         <div className="flex items-center justify-between mb-3">
-          <div className="text-xs text-neutral-500">최근 20주</div>
+          <div className="text-xs text-neutral-500">최근 {weeks}/20주</div>
           <div className="flex items-center gap-2 text-xs text-neutral-500">
             <span className="inline-flex items-center gap-1">
               Less<div className="h-3 w-3 bg-neutral-200 rounded-sm" />
@@ -37,8 +41,10 @@ export default function AttendanceGroup({
         <Heatmap data={heat} />
       </Card>
 
-      {/* 스트릭 */}
-      <Card title="연속 출석 스트릭" right={<Sparkline data={presence.trend} />}>
+      {/* 연속 출석 스트릭 */}
+      <Card
+        title="연속 출석 스트릭"
+      >
         <div className="flex items-center gap-6">
           <div>
             <div className="text-4xl font-extrabold leading-none">
@@ -63,7 +69,6 @@ export default function AttendanceGroup({
       {/* 접속 시간 */}
       <Card
         title="출석 접속시간"
-        right={<Sparkline data={presence.trend} />}
         className="md:col-span-2"
       >
         <div className="grid grid-cols-3 gap-4">

@@ -20,7 +20,9 @@ export default function MembersSection({ roomId }: { roomId: string }) {
   // ✅ 현재 로그인한 사용자의 역할 확인
   useEffect(() => {
     (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       const { data: profile } = await supabase
@@ -94,14 +96,14 @@ export default function MembersSection({ roomId }: { roomId: string }) {
       .on(
         "postgres_changes",
         {
-          event: "*", // insert / update / delete 모두 감지
+          event: "*",
           schema: "public",
           table: "library_room_members",
           filter: `room_id=eq.${roomId}`,
         },
         (payload) => {
           console.log("📡 실시간 업데이트 감지:", payload);
-          fetchMembers(); // 변경 시 자동 새로고침
+          fetchMembers();
         }
       )
       .subscribe();
@@ -117,7 +119,6 @@ export default function MembersSection({ roomId }: { roomId: string }) {
 
     console.log("🗑️ 삭제 시도:", { roomId, memberId });
 
-    // 삭제 전 존재 여부 확인
     const { data: checkData, error: checkError } = await supabase
       .from("library_room_members")
       .select("user_id, room_id")
@@ -136,7 +137,6 @@ export default function MembersSection({ roomId }: { roomId: string }) {
       return;
     }
 
-    // 실제 삭제 실행
     const { error: deleteError } = await supabase
       .from("library_room_members")
       .delete()
@@ -150,8 +150,6 @@ export default function MembersSection({ roomId }: { roomId: string }) {
     }
 
     console.log("✅ 삭제 성공:", memberId);
-
-    // 즉시 반영
     setMembers((prev) => prev.filter((m) => m.id !== memberId));
   };
 
@@ -162,20 +160,21 @@ export default function MembersSection({ roomId }: { roomId: string }) {
   };
 
   return (
-    <section className="mt-12">
+    <section className="mt-8 md:mt-12">
       {/* 헤더 */}
-      <div className="flex items-center justify-between mb-8">
-        <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-6 md:mb-8">
+        <h2 className="text-lg md:text-2xl font-bold text-gray-800 flex items-center gap-2">
           👥 강의실 멤버
-          <span className="text-sm text-gray-500 font-medium">
+          <span className="text-xs md:text-sm text-gray-500 font-medium">
             ({members.length})
           </span>
         </h2>
 
+        {/* 초대 버튼 (현재 주석 유지) */}
         {/* {(role === "teacher" || role === "admin") && (
           <button
             onClick={() => setShowModal(true)}
-            className="rounded-lg bg-indigo-600 px-5 py-2 text-sm text-white font-semibold shadow-sm hover:bg-indigo-700 transition-all"
+            className="rounded-lg bg-indigo-600 px-4 py-1.5 md:px-5 md:py-2 text-xs md:text-sm text-white font-semibold shadow-sm hover:bg-indigo-700 transition-all"
           >
             + 학생 초대
           </button>
@@ -184,25 +183,27 @@ export default function MembersSection({ roomId }: { roomId: string }) {
 
       {/* 멤버 카드 목록 */}
       {loading ? (
-        <p className="text-gray-500 text-sm">불러오는 중...</p>
+        <p className="text-xs md:text-sm text-gray-500">불러오는 중...</p>
       ) : members.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-gray-300 p-12 text-center text-gray-500 bg-gray-50">
+        <div className="rounded-2xl border border-dashed border-gray-300 p-8 md:p-12 text-center text-xs md:text-sm text-gray-500 bg-gray-50">
           아직 등록된 멤버가 없습니다 😅
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
           {members.map((m) => (
             <div
               key={m.id}
-              className="relative rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all p-5 text-center flex flex-col items-center"
+              className="relative rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all p-4 md:p-5 text-center flex flex-col items-center"
             >
-              <div className="text-lg font-semibold text-gray-800">
+              <div className="text-sm md:text-base font-semibold text-gray-800">
                 {m.full_name}
               </div>
-              <div className="text-sm text-gray-500 mt-1">{m.email}</div>
+              <div className="text-[11px] md:text-sm text-gray-500 mt-1">
+                {m.email}
+              </div>
 
               <span
-                className={`mt-3 px-3 py-1 text-xs font-semibold rounded-full ${
+                className={`mt-3 px-3 py-1 text-[11px] md:text-xs font-semibold rounded-full ${
                   m.role === "admin"
                     ? "bg-emerald-100 text-emerald-700"
                     : m.role === "teacher"
@@ -216,7 +217,7 @@ export default function MembersSection({ roomId }: { roomId: string }) {
               {(role === "teacher" || role === "admin") && (
                 <button
                   onClick={() => handleRemove(m.id)}
-                  className="absolute top-2 right-2 text-gray-400 hover:text-red-500 transition-colors"
+                  className="absolute top-2 right-2 text-xs md:text-sm text-gray-400 hover:text-red-500 transition-colors"
                   title="멤버 제거"
                 >
                   ✕

@@ -27,13 +27,13 @@ export default function AddPostModal({
     try {
       let attachments: any[] = [];
 
-      // ✅ 파일 업로드
       if (files && files.length > 0) {
         for (const file of Array.from(files)) {
           const fileExt = file.name.split(".").pop();
           const fileName = `${uuidv4()}.${fileExt}`;
+
           const { error: uploadError } = await supabase.storage
-            .from("posts") // Storage 버킷 이름
+            .from("posts")
             .upload(fileName, file);
 
           if (uploadError) throw uploadError;
@@ -51,7 +51,6 @@ export default function AddPostModal({
         }
       }
 
-      // ✅ 게시물 insert (파일정보 포함)
       const { data, error } = await supabase
         .from("library_posts")
         .insert([{ title, body, room_id: roomId, week, attachments }])
@@ -62,7 +61,6 @@ export default function AddPostModal({
       if (data) onAdded(data as LibraryPost);
       onClose();
     } catch (e: any) {
-      console.error("Insert error:", e);
       setErr(e.message);
     } finally {
       setLoading(false);
@@ -71,44 +69,67 @@ export default function AddPostModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-lg">
-        <h2 className="mb-4 text-lg font-bold">자료 추가</h2>
-        <div className="space-y-3">
+      <div
+        className="
+          w-[90%] md:w-full max-w-lg 
+          rounded-xl bg-white 
+          p-5 md:p-6 
+          shadow-lg
+        "
+      >
+        <h2 className="mb-3 md:mb-4 text-base md:text-lg font-bold">자료 추가</h2>
+
+        <div className="space-y-2.5 md:space-y-3 text-xs md:text-sm">
           <input
             placeholder="제목"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full rounded border px-3 py-2"
+            className="w-full rounded border px-3 py-2 md:py-3"
           />
+
           <textarea
             placeholder="본문"
             value={body}
             onChange={(e) => setBody(e.target.value)}
-            className="w-full rounded border px-3 py-2"
+            className="w-full rounded border px-3 py-2 md:py-3"
           />
+
           <input
             type="number"
             min={1}
             value={week}
             onChange={(e) => setWeek(Number(e.target.value))}
-            className="w-full rounded border px-3 py-2"
+            className="w-full rounded border px-3 py-2 md:py-3"
           />
+
           <input
             type="file"
             multiple
             onChange={(e) => setFiles(e.target.files)}
-            className="w-full rounded border px-3 py-2"
+            className="w-full rounded border px-3 py-2 md:py-3"
           />
-          {err && <p className="text-sm text-red-600">{err}</p>}
+
+          {err && <p className="text-xs md:text-sm text-red-600">{err}</p>}
         </div>
-        <div className="mt-6 flex justify-end gap-2">
-          <button onClick={onClose} className="rounded bg-gray-100 px-4 py-2 text-sm">
+
+        <div className="mt-5 md:mt-6 flex justify-end gap-2">
+          <button
+            onClick={onClose}
+            className="rounded bg-gray-100 px-4 py-2 text-xs md:text-sm"
+          >
             취소
           </button>
+
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="rounded bg-indigo-600 px-4 py-2 text-sm text-white disabled:opacity-50"
+            className="
+              rounded bg-indigo-600 
+              px-4 py-2 
+              text-xs md:text-sm 
+              text-white 
+              disabled:opacity-50
+            "
           >
             {loading ? "저장 중..." : "저장"}
           </button>

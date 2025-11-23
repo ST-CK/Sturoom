@@ -21,7 +21,7 @@ export default function StudyGroup({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* 학습시간 */}
-      <Card title="학습시간" right={<Sparkline data={study.trend} />}>
+      <Card title="학습시간">
         <div className="flex items-center gap-6">
           <div>
             <div className="text-xs text-neutral-500">총 학습시간</div>

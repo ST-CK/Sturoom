@@ -65,7 +65,7 @@ export default function ClientRoom({
   }
 
   return (
-    <div className="flex gap-6">
+    <div className="flex flex-col md:flex-row gap-4 md:gap-6">
       {/* 사이드바 (주차별 보기) */}
       <WeekSidebar
         weeks={initialWeeks}
@@ -75,8 +75,8 @@ export default function ClientRoom({
 
       <div className="flex-1">
         {/* 상단 헤더 */}
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-gray-600">
+        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <h2 className="text-xs sm:text-sm font-semibold text-gray-600">
             {activeWeek === null ? "전체 콘텐츠" : `${activeWeek}주차`}
           </h2>
 
@@ -84,7 +84,7 @@ export default function ClientRoom({
           {(role === "admin" || role === "teacher") && (
             <button
               onClick={() => setShowAddModal(true)}
-              className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs text-white hover:bg-indigo-700"
+              className="self-start sm:self-auto rounded-lg bg-indigo-600 px-3 py-1.5 text-xs text-white hover:bg-indigo-700"
             >
               + 자료 추가
             </button>
@@ -93,13 +93,13 @@ export default function ClientRoom({
 
         {/* 게시물 목록 */}
         {filteredPosts.length === 0 ? (
-          <div className="text-gray-500">
+          <div className="text-xs sm:text-sm text-gray-500">
             {activeWeek === null
               ? "등록된 자료가 없습니다. 자료를 추가해 보세요."
               : `${activeWeek}주차 자료가 없습니다.`}
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             {filteredPosts.map((p) => (
               <ContentCard
                 key={p.id}
@@ -107,7 +107,7 @@ export default function ClientRoom({
                 onOpen={setOpen}
                 onEdit={setEditPost}
                 onDelete={handleDelete}
-                role={role} // ✅ 역할 전달
+                role={role}
               />
             ))}
           </div>
@@ -133,7 +133,7 @@ export default function ClientRoom({
         )}
 
         {/* ✅ 멤버 목록 섹션 (항상 하단에 표시) */}
-        <div className="mt-8 border-t pt-4">
+        <div className="mt-6 md:mt-8 border-t pt-3 md:pt-4">
           <MembersSection roomId={roomId} />
         </div>
       </div>

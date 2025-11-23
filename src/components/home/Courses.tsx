@@ -48,11 +48,11 @@ export default function Courses() {
   return (
     <section id="flow">
       <Container className="pb-12 pt-6 md:pb-16">
-        <h2 className="mb-10 text-2xl font-bold md:text-3xl">
+        <h2 className="mb-8 sm:mb-10 text-xl sm:text-2xl md:text-3xl font-bold text-center md:text-left">
           Sturoom은 이렇게 동작해요
         </h2>
 
-        <div className="grid gap-6 md:grid-cols-5">
+        <div className="grid gap-5 sm:gap-6 sm:grid-cols-2 lg:grid-cols-5">
           {flow.map((step, index) => {
             const Icon = step.icon;
             const gradient = gradients[index];
@@ -60,16 +60,20 @@ export default function Courses() {
               <div
                 key={step.title}
                 className={`
-                  flex flex-col rounded-2xl p-6 shadow-sm transition hover:shadow-md text-white 
+                  flex flex-col rounded-2xl p-5 sm:p-6 shadow-sm transition hover:shadow-md text-white 
                   bg-gradient-to-br ${gradient}
                 `}
               >
-                <div className="mb-4 rounded-xl bg-white/20 p-3 inline-flex items-center justify-center">
-                  <Icon className="h-8 w-8 text-white" />
+                <div className="mb-4 inline-flex items-center justify-center rounded-xl bg-white/20 p-3">
+                  <Icon className="h-7 w-7 sm:h-8 sm:w-8 text-white" />
                 </div>
 
-                <h3 className="mb-2 font-semibold">{step.title}</h3>
-                <p className="text-sm leading-relaxed opacity-90">{step.desc}</p>
+                <h3 className="mb-2 text-sm sm:text-base font-semibold">
+                  {step.title}
+                </h3>
+                <p className="text-xs sm:text-sm leading-relaxed opacity-90">
+                  {step.desc}
+                </p>
               </div>
             );
           })}
