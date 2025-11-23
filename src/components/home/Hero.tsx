@@ -11,10 +11,9 @@ export default function Hero() {
             나만의 AI 학습 파트너
           </p>
 
-          <h1 className="mb-4 text-3xl sm:text-4xl md:text-5xl font-bold leading-tight">
-            조금 더
-            <br />
-            똑똑하게 공부하고 싶다면,
+          {/* 제목 – 모바일에서도 한 줄 유지 */}
+          <h1 className="mb-4 text-3xl font-bold leading-tight sm:text-4xl md:text-5xl text-center">
+          조금 더<br />똑똑하게 공부하고 싶다면,
           </h1>
 
           <p className="mb-6 text-gray-600 text-base sm:text-lg leading-relaxed">
@@ -23,37 +22,30 @@ export default function Hero() {
             퀴즈와 학습 리포트를 자동 생성해요.
           </p>
 
-          <div className="flex w-full gap-2">
-          <a
-            href="/quiz"
-            className="
-               flex-1 text-center
-               rounded-xl bg-indigo-600 
-               py-2 text-sm md:px-5 md:py-3 md:text-base
-               font-semibold text-white shadow-sm hover:bg-indigo-700">
-           AI 퀴즈 시작하기
-           </a>
+          {/* 버튼 – 모바일: 한 줄 꽉 채움 / PC: 기존처럼 옆으로 */}
+          <div className="flex flex-row gap-3 w-full">
+  <a
+    href="/quiz"
+    className="flex-1 text-center rounded-xl bg-indigo-600 px-5 py-3 font-semibold text-white shadow-sm hover:bg-indigo-700"
+  >
+    AI 퀴즈 시작하기
+  </a>
+  <a
+    href="/report"
+    className="flex-1 text-center rounded-xl border border-gray-300 bg-white px-5 py-3 font-semibold text-gray-900 hover:bg-gray-50"
+  >
+    학습 리포트 보기
+  </a>
+</div>
 
-           <a
-             href="/report"
-             className="
-                flex-1 text-center
-                rounded-xl border border-gray-300 bg-white
-                py-2 text-sm md:px-5 md:py-3 md:text-base
-                font-semibold text-gray-900 hover:bg-gray-50">
-           학습 리포트 보기
-           </a>
-         </div>
         </div>
 
         {/* RIGHT SIDE: AI QUIZ PREVIEW BOX */}
         <div className="rounded-2xl border bg-white p-4 shadow-sm">
           <div className="rounded-xl border bg-gray-50 p-4">
-            {/* Visual Preview */}
-            <div
-              className="mb-3 h-40 rounded-lg bg-gradient-to-tr from-sky-400 to-indigo-500 
-                            flex items-center justify-center text-white font-semibold text-lg"
-            >
+
+            <div className="mb-3 h-40 rounded-lg bg-gradient-to-tr from-sky-400 to-indigo-500 
+                            flex items-center justify-center text-white font-semibold text-lg">
               영상예정
             </div>
 
